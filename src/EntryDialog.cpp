@@ -1,0 +1,660 @@
+#include "EntryDialog.h"
+#include "TotpEngine.h"
+#include "VaultCrypto.h"
+#include <wx/mstream.h>
+#include <wx/wfstream.h>
+#include <random>
+
+EntryDialog::EntryDialog(wxWindow* parent,
+                         const std::vector<std::string>& availableTabs,
+                         const std::string& defaultTab,
+                         const VaultItem* existingItem)
+    : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxSize(660, 740), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+      m_availableTabs(availableTabs),
+      m_isEditing(existingItem != nullptr),
+      m_typeRadio(nullptr),
+      m_labelCtrl(nullptr),
+      m_tabCombo(nullptr),
+      m_newTabBtn(nullptr),
+      m_usernameCtrl(nullptr),
+      m_emailCtrl(nullptr),
+      m_passwordCtrl(nullptr),
+      m_togglePasswordBtn(nullptr),
+      m_generatePasswordBtn(nullptr),
+      m_websiteCtrl(nullptr),
+      m_totpSecretCtrl(nullptr),
+      m_totpStatusLabel(nullptr),
+      m_notesCtrl(nullptr),
+      m_basicCredsPanel(nullptr),
+      m_secQuestionsSection(nullptr),
+      m_miscCustomSection(nullptr),
+      m_questionsScroll(nullptr),
+      m_questionsSizer(nullptr),
+      m_customFieldsScroll(nullptr),
+      m_customFieldsSizer(nullptr),
+      m_addQuestionBtn(nullptr),
+      m_addCustomFieldBtn(nullptr),
+      m_imagePanel(nullptr),
+      m_imageThumbBmp(nullptr),
+      m_imageNameLabel(nullptr),
+      m_uploadImageBtn(nullptr),
+      m_removeImageBtn(nullptr) {
+
+    if (m_isEditing && existingItem) {
+        m_resultItem = *existingItem;
+        SetTitle("Password Locker - Edit Account: " + wxString::FromUTF8(existingItem->label.c_str()));
+    } else {
+        m_resultItem = VaultItem::CreateNew(AccountType::Basic, "", defaultTab);
+        SetTitle("Password Locker - Add New Vault Entry");
+    }
+
+    SetBackgroundColour(wxColour(248, 250, 252));
+    SetupUI();
+
+    if (m_isEditing && existingItem) {
+        m_typeRadio->SetSelection(static_cast<int>(existingItem->type));
+        m_labelCtrl->SetValue(wxString::FromUTF8(existingItem->label.c_str()));
+        m_tabCombo->SetValue(wxString::FromUTF8(existingItem->tabName.c_str()));
+        m_usernameCtrl->SetValue(wxString::FromUTF8(existingItem->username.c_str()));
+        m_emailCtrl->SetValue(wxString::FromUTF8(existingItem->email.c_str()));
+        m_passwordCtrl->SetValue(wxString::FromUTF8(existingItem->password.c_str()));
+        m_websiteCtrl->SetValue(wxString::FromUTF8(existingItem->website.c_str()));
+        m_totpSecretCtrl->SetValue(wxString::FromUTF8(existingItem->totpSecret.c_str()));
+        m_notesCtrl->SetValue(wxString::FromUTF8(existingItem->notes.c_str()));
+
+        for (const auto& sq : existingItem->securityQuestions) {
+            AddQuestionRow(sq.question, sq.answer);
+        }
+        for (const auto& cf : existingItem->customFields) {
+            AddCustomFieldRow(cf.label, cf.value);
+        }
+    } else {
+        // Pre-add one initial empty row for questions and custom fields
+        AddQuestionRow("", "");
+        AddCustomFieldRow("", "");
+    }
+
+    UpdateImagePreview();
+    AdaptFieldsToType(static_cast<AccountType>(m_typeRadio->GetSelection()));
+}
+
+void EntryDialog::SetupUI() {
+    wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
+
+    // Top Header
+    wxPanel* headerPanel = new wxPanel(this, wxID_ANY);
+    headerPanel->SetBackgroundColour(wxColour(15, 23, 42)); // Slate 900
+    wxBoxSizer* headerSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* titleTxt = new wxStaticText(headerPanel, wxID_ANY, m_isEditing ? "Edit Account Record" : "Add New Vault Record");
+    titleTxt->SetForegroundColour(*wxWHITE);
+    wxFont f = titleTxt->GetFont();
+    f.SetPointSize(13);
+    f.SetWeight(wxFONTWEIGHT_BOLD);
+    titleTxt->SetFont(f);
+
+    wxStaticText* descTxt = new wxStaticText(headerPanel, wxID_ANY,
+        "Select account type below. Fields dynamically adapt to match your selection.");
+    descTxt->SetForegroundColour(wxColour(148, 163, 184));
+
+    headerSizer->Add(titleTxt, 0, wxALL, 12);
+    headerSizer->Add(descTxt, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    headerPanel->SetSizer(headerSizer);
+    rootSizer->Add(headerPanel, 0, wxEXPAND);
+
+    // Main Scrollable Body
+    wxScrolledWindow* bodyScroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    bodyScroll->SetScrollRate(0, 10);
+    wxBoxSizer* bodySizer = new wxBoxSizer(wxVERTICAL);
+
+    // 1. Account Type Selector
+    wxArrayString types;
+    types.Add("1. Basic App Password (General Purpose)");
+    types.Add("2. Account with Security Questions");
+    types.Add("3. Miscellaneous Information (Custom Fields & Tabs)");
+
+    m_typeRadio = new wxRadioBox(bodyScroll, wxID_ANY, "Select Account Type:",
+                                 wxDefaultPosition, wxDefaultSize, types, 1, wxRA_SPECIFY_COLS);
+    m_typeRadio->SetSelection(0);
+    m_typeRadio->Bind(wxEVT_RADIOBOX, &EntryDialog::OnTypeChanged, this);
+    bodySizer->Add(m_typeRadio, 0, wxEXPAND | wxALL, 12);
+
+    // 2. Common Header Fields: Label / Name & Tab Category
+    wxFlexGridSizer* topGrid = new wxFlexGridSizer(2, 2, 8, 10);
+    topGrid->AddGrowableCol(0, 1);
+    topGrid->AddGrowableCol(1, 1);
+
+    wxBoxSizer* labelBox = new wxBoxSizer(wxVERTICAL);
+    labelBox->Add(new wxStaticText(bodyScroll, wxID_ANY, "Account / Service Label *:"), 0, wxBOTTOM, 4);
+    m_labelCtrl = new wxTextCtrl(bodyScroll, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30));
+    m_labelCtrl->SetHint("e.g. Google, GitHub, Work VPN, Bank");
+    labelBox->Add(m_labelCtrl, 0, wxEXPAND);
+
+    wxBoxSizer* tabBox = new wxBoxSizer(wxVERTICAL);
+    tabBox->Add(new wxStaticText(bodyScroll, wxID_ANY, "Category / Tab Section:"), 0, wxBOTTOM, 4);
+    wxBoxSizer* tabRow = new wxBoxSizer(wxHORIZONTAL);
+    wxArrayString tabChoices;
+    for (const auto& t : m_availableTabs) {
+        tabChoices.Add(wxString::FromUTF8(t.c_str()));
+    }
+    m_tabCombo = new wxComboBox(bodyScroll, wxID_ANY, "General", wxDefaultPosition, wxDefaultSize, tabChoices, wxCB_DROPDOWN);
+    m_newTabBtn = new wxButton(bodyScroll, wxID_ANY, "+ New Tab", wxDefaultPosition, wxSize(80, 30));
+    m_newTabBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnAddNewTabClicked, this);
+    tabRow->Add(m_tabCombo, 1, wxEXPAND | wxRIGHT, 6);
+    tabRow->Add(m_newTabBtn, 0);
+    tabBox->Add(tabRow, 0, wxEXPAND);
+
+    topGrid->Add(labelBox, 1, wxEXPAND);
+    topGrid->Add(tabBox, 1, wxEXPAND);
+    bodySizer->Add(topGrid, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // 3. Basic Credentials Panel (Username, Email, Password, URL, Notes)
+    m_basicCredsPanel = new wxPanel(bodyScroll, wxID_ANY);
+    wxBoxSizer* basicSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxFlexGridSizer* credGrid = new wxFlexGridSizer(2, 2, 8, 10);
+    credGrid->AddGrowableCol(0, 1);
+    credGrid->AddGrowableCol(1, 1);
+
+    // Username
+    wxBoxSizer* userBox = new wxBoxSizer(wxVERTICAL);
+    userBox->Add(new wxStaticText(m_basicCredsPanel, wxID_ANY, "Username (optional):"), 0, wxBOTTOM, 4);
+    m_usernameCtrl = new wxTextCtrl(m_basicCredsPanel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30));
+    userBox->Add(m_usernameCtrl, 0, wxEXPAND);
+
+    // Email
+    wxBoxSizer* emailBox = new wxBoxSizer(wxVERTICAL);
+    emailBox->Add(new wxStaticText(m_basicCredsPanel, wxID_ANY, "Email Address (optional):"), 0, wxBOTTOM, 4);
+    m_emailCtrl = new wxTextCtrl(m_basicCredsPanel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30));
+    emailBox->Add(m_emailCtrl, 0, wxEXPAND);
+
+    credGrid->Add(userBox, 1, wxEXPAND);
+    credGrid->Add(emailBox, 1, wxEXPAND);
+    basicSizer->Add(credGrid, 0, wxEXPAND | wxBOTTOM, 8);
+
+    // Password row
+    basicSizer->Add(new wxStaticText(m_basicCredsPanel, wxID_ANY, "Password:"), 0, wxBOTTOM, 4);
+    wxBoxSizer* passRow = new wxBoxSizer(wxHORIZONTAL);
+    m_passwordCtrl = new wxTextCtrl(m_basicCredsPanel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30), wxTE_PASSWORD);
+    m_togglePasswordBtn = new wxButton(m_basicCredsPanel, wxID_ANY, "Show", wxDefaultPosition, wxSize(60, 30));
+    m_generatePasswordBtn = new wxButton(m_basicCredsPanel, wxID_ANY, "Generate Strong", wxDefaultPosition, wxSize(120, 30));
+    m_togglePasswordBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnTogglePasswordClicked, this);
+    m_generatePasswordBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnGeneratePasswordClicked, this);
+
+    passRow->Add(m_passwordCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    passRow->Add(m_togglePasswordBtn, 0, wxRIGHT, 6);
+    passRow->Add(m_generatePasswordBtn, 0);
+    basicSizer->Add(passRow, 0, wxEXPAND | wxBOTTOM, 8);
+
+    // Website / URL
+    basicSizer->Add(new wxStaticText(m_basicCredsPanel, wxID_ANY, "Website / Login URL (optional):"), 0, wxBOTTOM, 4);
+    m_websiteCtrl = new wxTextCtrl(m_basicCredsPanel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30));
+    m_websiteCtrl->SetHint("https://...");
+    basicSizer->Add(m_websiteCtrl, 0, wxEXPAND | wxBOTTOM, 8);
+
+    m_basicCredsPanel->SetSizer(basicSizer);
+    bodySizer->Add(m_basicCredsPanel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // 4. Security Questions Dynamic Section
+    m_secQuestionsSection = new wxPanel(bodyScroll, wxID_ANY);
+    m_secQuestionsSection->SetBackgroundColour(wxColour(241, 245, 249));
+    wxBoxSizer* sqHeaderSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* sqTopRow = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* sqTitle = new wxStaticText(m_secQuestionsSection, wxID_ANY, "Security Questions & Answers");
+    wxFont sqFont = sqTitle->GetFont();
+    sqFont.SetWeight(wxFONTWEIGHT_BOLD);
+    sqTitle->SetFont(sqFont);
+
+    m_addQuestionBtn = new wxButton(m_secQuestionsSection, wxID_ANY, "+ Add Question", wxDefaultPosition, wxSize(120, 28));
+    m_addQuestionBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnAddQuestionClicked, this);
+
+    sqTopRow->Add(sqTitle, 1, wxALIGN_CENTER_VERTICAL);
+    sqTopRow->Add(m_addQuestionBtn, 0);
+    sqHeaderSizer->Add(sqTopRow, 0, wxEXPAND | wxALL, 8);
+
+    m_questionsScroll = new wxScrolledWindow(m_secQuestionsSection, wxID_ANY, wxDefaultPosition, wxSize(-1, 140), wxVSCROLL);
+    m_questionsScroll->SetScrollRate(0, 10);
+    m_questionsSizer = new wxBoxSizer(wxVERTICAL);
+    m_questionsScroll->SetSizer(m_questionsSizer);
+    sqHeaderSizer->Add(m_questionsScroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+
+    m_secQuestionsSection->SetSizer(sqHeaderSizer);
+    bodySizer->Add(m_secQuestionsSection, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // 5. Miscellaneous Information / Custom Fields Section
+    m_miscCustomSection = new wxPanel(bodyScroll, wxID_ANY);
+    m_miscCustomSection->SetBackgroundColour(wxColour(241, 245, 249));
+    wxBoxSizer* miscHeaderSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* miscTopRow = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* miscTitle = new wxStaticText(m_miscCustomSection, wxID_ANY, "Custom User-Defined Fields & Labels");
+    wxFont miscFont = miscTitle->GetFont();
+    miscFont.SetWeight(wxFONTWEIGHT_BOLD);
+    miscTitle->SetFont(miscFont);
+
+    m_addCustomFieldBtn = new wxButton(m_miscCustomSection, wxID_ANY, "+ Add Custom Field", wxDefaultPosition, wxSize(140, 28));
+    m_addCustomFieldBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnAddCustomFieldClicked, this);
+
+    miscTopRow->Add(miscTitle, 1, wxALIGN_CENTER_VERTICAL);
+    miscTopRow->Add(m_addCustomFieldBtn, 0);
+    miscHeaderSizer->Add(miscTopRow, 0, wxEXPAND | wxALL, 8);
+
+    m_customFieldsScroll = new wxScrolledWindow(m_miscCustomSection, wxID_ANY, wxDefaultPosition, wxSize(-1, 140), wxVSCROLL);
+    m_customFieldsScroll->SetScrollRate(0, 10);
+    m_customFieldsSizer = new wxBoxSizer(wxVERTICAL);
+    m_customFieldsScroll->SetSizer(m_customFieldsSizer);
+    miscHeaderSizer->Add(m_customFieldsScroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+
+    // Attached Image / Document upload panel
+    m_imagePanel = new wxPanel(m_miscCustomSection, wxID_ANY);
+    m_imagePanel->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* imgBoxSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* imgTitle = new wxStaticText(m_imagePanel, wxID_ANY, "Attached Document / Image (Optional):");
+    wxFont imgF = imgTitle->GetFont();
+    imgF.SetWeight(wxFONTWEIGHT_BOLD);
+    imgTitle->SetFont(imgF);
+    imgBoxSizer->Add(imgTitle, 0, wxALL, 6);
+
+    wxBoxSizer* imgRow = new wxBoxSizer(wxHORIZONTAL);
+    m_imageThumbBmp = new wxStaticBitmap(m_imagePanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(90, 60));
+    m_imageNameLabel = new wxStaticText(m_imagePanel, wxID_ANY, "No image attached.");
+    m_imageNameLabel->SetForegroundColour(wxColour(100, 116, 139));
+
+    m_uploadImageBtn = new wxButton(m_imagePanel, wxID_ANY, "Upload Image...", wxDefaultPosition, wxSize(120, 28));
+    m_uploadImageBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnUploadImage, this);
+
+    m_removeImageBtn = new wxButton(m_imagePanel, wxID_ANY, "Remove", wxDefaultPosition, wxSize(75, 28));
+    m_removeImageBtn->SetForegroundColour(wxColour(220, 38, 38));
+    m_removeImageBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnRemoveImage, this);
+
+    imgRow->Add(m_imageThumbBmp, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 6);
+    imgRow->Add(m_imageNameLabel, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+    imgRow->Add(m_uploadImageBtn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    imgRow->Add(m_removeImageBtn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+
+    imgBoxSizer->Add(imgRow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 6);
+    m_imagePanel->SetSizer(imgBoxSizer);
+    miscHeaderSizer->Add(m_imagePanel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+
+    m_miscCustomSection->SetSizer(miscHeaderSizer);
+    bodySizer->Add(m_miscCustomSection, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // 6. 2-Factor Authentication (TOTP Secret Key)
+    wxPanel* totpPanel = new wxPanel(bodyScroll, wxID_ANY);
+    totpPanel->SetBackgroundColour(wxColour(238, 242, 255)); // Light indigo
+    wxBoxSizer* totpSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* totpTitle = new wxStaticText(totpPanel, wxID_ANY, "Two-Factor Authentication (2FA / TOTP) Secret Key:");
+    wxFont tf = totpTitle->GetFont();
+    tf.SetWeight(wxFONTWEIGHT_BOLD);
+    totpTitle->SetFont(tf);
+    totpSizer->Add(totpTitle, 0, wxBOTTOM, 4);
+
+    wxBoxSizer* totpRow = new wxBoxSizer(wxHORIZONTAL);
+    m_totpSecretCtrl = new wxTextCtrl(totpPanel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 30));
+    m_totpSecretCtrl->SetHint("Base32 Key, e.g. JBSWY3DPEHPK3PXP (optional)");
+    m_totpSecretCtrl->Bind(wxEVT_TEXT, &EntryDialog::OnTotpTextChange, this);
+
+    wxButton* testTotpBtn = new wxButton(totpPanel, wxID_ANY, "Generate Key", wxDefaultPosition, wxSize(100, 30));
+    testTotpBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        m_totpSecretCtrl->SetValue(TotpEngine::GenerateRandomSecret(16));
+    });
+
+    totpRow->Add(m_totpSecretCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    totpRow->Add(testTotpBtn, 0);
+    totpSizer->Add(totpRow, 0, wxEXPAND | wxBOTTOM, 4);
+
+    m_totpStatusLabel = new wxStaticText(totpPanel, wxID_ANY, "Leave blank if this account does not use 2FA.");
+    m_totpStatusLabel->SetForegroundColour(wxColour(100, 116, 139));
+    totpSizer->Add(m_totpStatusLabel, 0);
+
+    totpPanel->SetSizer(totpSizer);
+    bodySizer->Add(totpPanel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // 7. General Notes
+    bodySizer->Add(new wxStaticText(bodyScroll, wxID_ANY, "Notes / Additional Information (optional):"), 0, wxLEFT | wxRIGHT | wxBOTTOM, 4);
+    m_notesCtrl = new wxTextCtrl(bodyScroll, wxID_ANY, "", wxDefaultPosition, wxSize(-1, 60), wxTE_MULTILINE);
+    bodySizer->Add(m_notesCtrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 16);
+
+    bodyScroll->SetSizer(bodySizer);
+    rootSizer->Add(bodyScroll, 1, wxEXPAND);
+
+    // Bottom Action Buttons
+    wxPanel* bottomPanel = new wxPanel(this, wxID_ANY);
+    bottomPanel->SetBackgroundColour(wxColour(241, 245, 249));
+    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxButton* cancelBtn = new wxButton(bottomPanel, wxID_CANCEL, "Cancel", wxDefaultPosition, wxSize(90, 34));
+    wxButton* saveBtn = new wxButton(bottomPanel, wxID_OK, m_isEditing ? "Save Changes" : "Submit Account", wxDefaultPosition, wxSize(130, 34));
+    saveBtn->SetDefault();
+    saveBtn->SetBackgroundColour(wxColour(37, 99, 235));
+    saveBtn->SetForegroundColour(*wxWHITE);
+
+    cancelBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnCancelClicked, this);
+    saveBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnSaveClicked, this);
+
+    bottomSizer->AddStretchSpacer();
+    bottomSizer->Add(cancelBtn, 0, wxRIGHT, 8);
+    bottomSizer->Add(saveBtn, 0);
+    bottomPanel->SetSizer(bottomSizer);
+
+    rootSizer->Add(bottomPanel, 0, wxEXPAND | wxALL, 10);
+
+    SetSizer(rootSizer);
+    CenterOnParent();
+}
+
+void EntryDialog::AdaptFieldsToType(AccountType type) {
+    // 0: Basic App Password
+    // 1: Account with Security Questions
+    // 2: Miscellaneous Information
+    if (type == AccountType::Basic) {
+        m_basicCredsPanel->Show(true);
+        m_secQuestionsSection->Show(false);
+        m_miscCustomSection->Show(false);
+    } else if (type == AccountType::SecurityQuestions) {
+        m_basicCredsPanel->Show(true);
+        m_secQuestionsSection->Show(true);
+        m_miscCustomSection->Show(false);
+    } else { // Miscellaneous
+        m_basicCredsPanel->Show(false);
+        m_secQuestionsSection->Show(false);
+        m_miscCustomSection->Show(true);
+    }
+
+    Layout();
+    FitInside();
+}
+
+void EntryDialog::OnTypeChanged(wxCommandEvent& evt) {
+    AccountType type = static_cast<AccountType>(evt.GetSelection());
+    AdaptFieldsToType(type);
+}
+
+void EntryDialog::AddQuestionRow(const std::string& q, const std::string& a) {
+    wxPanel* rowPanel = new wxPanel(m_questionsScroll, wxID_ANY);
+    wxBoxSizer* rowSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxTextCtrl* qCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(q.c_str()), wxDefaultPosition, wxSize(200, 28));
+    qCtrl->SetHint("Security Question (e.g. First pet?)");
+
+    wxTextCtrl* aCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(a.c_str()), wxDefaultPosition, wxSize(160, 28));
+    aCtrl->SetHint("Answer");
+
+    wxButton* rmBtn = new wxButton(rowPanel, wxID_ANY, "Del", wxDefaultPosition, wxSize(36, 28));
+    rmBtn->SetToolTip("Remove this security question");
+
+    rowSizer->Add(qCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    rowSizer->Add(aCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    rowSizer->Add(rmBtn, 0);
+
+    rowPanel->SetSizer(rowSizer);
+    m_questionsSizer->Add(rowPanel, 0, wxEXPAND | wxBOTTOM, 6);
+
+    QuestionRow qr;
+    qr.panel = rowPanel;
+    qr.questionCtrl = qCtrl;
+    qr.answerCtrl = aCtrl;
+    qr.removeBtn = rmBtn;
+    m_questionRows.push_back(qr);
+
+    rmBtn->Bind(wxEVT_BUTTON, [this, rowPanel](wxCommandEvent&) {
+        RemoveQuestionRow(rowPanel);
+    });
+
+    m_questionsScroll->FitInside();
+    m_questionsScroll->Layout();
+}
+
+void EntryDialog::RemoveQuestionRow(wxPanel* panel) {
+    for (auto it = m_questionRows.begin(); it != m_questionRows.end(); ++it) {
+        if (it->panel == panel) {
+            panel->Destroy();
+            m_questionRows.erase(it);
+            break;
+        }
+    }
+    m_questionsScroll->FitInside();
+    m_questionsScroll->Layout();
+}
+
+void EntryDialog::AddCustomFieldRow(const std::string& lbl, const std::string& val) {
+    wxPanel* rowPanel = new wxPanel(m_customFieldsScroll, wxID_ANY);
+    wxBoxSizer* rowSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxTextCtrl* lCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(lbl.c_str()), wxDefaultPosition, wxSize(180, 28));
+    lCtrl->SetHint("Label (e.g. API Key, IP, License)");
+
+    wxTextCtrl* vCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(val.c_str()), wxDefaultPosition, wxSize(180, 28));
+    vCtrl->SetHint("Value / Secret data");
+
+    wxButton* rmBtn = new wxButton(rowPanel, wxID_ANY, "Del", wxDefaultPosition, wxSize(36, 28));
+    rmBtn->SetToolTip("Remove this custom field");
+
+    rowSizer->Add(lCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    rowSizer->Add(vCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    rowSizer->Add(rmBtn, 0);
+
+    rowPanel->SetSizer(rowSizer);
+    m_customFieldsSizer->Add(rowPanel, 0, wxEXPAND | wxBOTTOM, 6);
+
+    CustomFieldRow cfr;
+    cfr.panel = rowPanel;
+    cfr.labelCtrl = lCtrl;
+    cfr.valueCtrl = vCtrl;
+    cfr.removeBtn = rmBtn;
+    m_customFieldRows.push_back(cfr);
+
+    rmBtn->Bind(wxEVT_BUTTON, [this, rowPanel](wxCommandEvent&) {
+        RemoveCustomFieldRow(rowPanel);
+    });
+
+    m_customFieldsScroll->FitInside();
+    m_customFieldsScroll->Layout();
+}
+
+void EntryDialog::RemoveCustomFieldRow(wxPanel* panel) {
+    for (auto it = m_customFieldRows.begin(); it != m_customFieldRows.end(); ++it) {
+        if (it->panel == panel) {
+            panel->Destroy();
+            m_customFieldRows.erase(it);
+            break;
+        }
+    }
+    m_customFieldsScroll->FitInside();
+    m_customFieldsScroll->Layout();
+}
+
+void EntryDialog::OnAddQuestionClicked(wxCommandEvent& evt) {
+    AddQuestionRow("", "");
+}
+
+void EntryDialog::OnAddCustomFieldClicked(wxCommandEvent& evt) {
+    AddCustomFieldRow("", "");
+}
+
+void EntryDialog::OnTogglePasswordClicked(wxCommandEvent& evt) {
+    wxString currentVal = m_passwordCtrl->GetValue();
+    long style = m_passwordCtrl->GetWindowStyle();
+    bool isPassword = (style & wxTE_PASSWORD) != 0;
+
+    wxWindow* parent = m_passwordCtrl->GetParent();
+    wxSizer* sizer = m_passwordCtrl->GetContainingSizer();
+
+    int idx = 0;
+    for (size_t i = 0; i < sizer->GetChildren().size(); ++i) {
+        if (sizer->GetItem(i)->GetWindow() == m_passwordCtrl) {
+            idx = static_cast<int>(i);
+            break;
+        }
+    }
+
+    m_passwordCtrl->Destroy();
+
+    if (isPassword) {
+        m_passwordCtrl = new wxTextCtrl(parent, wxID_ANY, currentVal, wxDefaultPosition, wxSize(-1, 30));
+        m_togglePasswordBtn->SetLabel("Hide");
+    } else {
+        m_passwordCtrl = new wxTextCtrl(parent, wxID_ANY, currentVal, wxDefaultPosition, wxSize(-1, 30), wxTE_PASSWORD);
+        m_togglePasswordBtn->SetLabel("Show");
+    }
+
+    sizer->Insert(idx, m_passwordCtrl, 1, wxEXPAND | wxRIGHT, 6);
+    parent->Layout();
+}
+
+void EntryDialog::OnGeneratePasswordClicked(wxCommandEvent& evt) {
+    static const char chars[] = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()-_=+";
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, sizeof(chars) - 2);
+
+    std::string pass;
+    for (int i = 0; i < 18; ++i) {
+        pass.push_back(chars[dis(gen)]);
+    }
+    m_passwordCtrl->SetValue(pass);
+}
+
+void EntryDialog::OnAddNewTabClicked(wxCommandEvent& evt) {
+    wxTextEntryDialog dlg(this, "Enter name for new Tab / Section:", "Create New Tab");
+    if (dlg.ShowModal() == wxID_OK) {
+        wxString newTab = dlg.GetValue().Trim();
+        if (!newTab.empty()) {
+            m_tabCombo->Append(newTab);
+            m_tabCombo->SetValue(newTab);
+        }
+    }
+}
+
+void EntryDialog::OnTotpTextChange(wxCommandEvent& evt) {
+    std::string secret = m_totpSecretCtrl->GetValue().ToStdString();
+    if (secret.empty()) {
+        m_totpStatusLabel->SetLabel("Leave blank if this account does not use 2FA.");
+        m_totpStatusLabel->SetForegroundColour(wxColour(100, 116, 139));
+    } else if (TotpEngine::IsValidBase32(secret)) {
+        std::string sample = TotpEngine::GenerateCode(secret);
+        m_totpStatusLabel->SetLabel("Valid 2FA Base32 Secret! Current Token: " + sample);
+        m_totpStatusLabel->SetForegroundColour(wxColour(22, 163, 74)); // Green
+    } else {
+        m_totpStatusLabel->SetLabel("Invalid Base32 secret key. Allowed characters: A-Z, 2-7.");
+        m_totpStatusLabel->SetForegroundColour(wxColour(220, 38, 38)); // Red
+    }
+}
+
+void EntryDialog::OnSaveClicked(wxCommandEvent& evt) {
+    wxString label = m_labelCtrl->GetValue().Trim();
+    if (label.empty()) {
+        wxMessageBox("Please enter an Account / Service Label.", "Validation Error", wxOK | wxICON_WARNING, this);
+        m_labelCtrl->SetFocus();
+        return;
+    }
+
+    AccountType type = static_cast<AccountType>(m_typeRadio->GetSelection());
+    m_resultItem.type = type;
+    m_resultItem.label = label.ToStdString();
+    m_resultItem.tabName = m_tabCombo->GetValue().Trim().ToStdString();
+    if (m_resultItem.tabName.empty()) m_resultItem.tabName = "General";
+
+    m_resultItem.username = m_usernameCtrl->GetValue().Trim().ToStdString();
+    m_resultItem.email = m_emailCtrl->GetValue().Trim().ToStdString();
+    m_resultItem.password = m_passwordCtrl->GetValue().ToStdString();
+    m_resultItem.website = m_websiteCtrl->GetValue().Trim().ToStdString();
+    m_resultItem.totpSecret = m_totpSecretCtrl->GetValue().Trim().ToStdString();
+    m_resultItem.notes = m_notesCtrl->GetValue().ToStdString();
+
+    // Collect security questions
+    m_resultItem.securityQuestions.clear();
+    if (type == AccountType::SecurityQuestions) {
+        for (const auto& row : m_questionRows) {
+            std::string q = row.questionCtrl->GetValue().Trim().ToStdString();
+            std::string a = row.answerCtrl->GetValue().Trim().ToStdString();
+            if (!q.empty() || !a.empty()) {
+                m_resultItem.securityQuestions.push_back({ q, a });
+            }
+        }
+    }
+
+    // Collect custom fields
+    m_resultItem.customFields.clear();
+    if (type == AccountType::Miscellaneous) {
+        for (const auto& row : m_customFieldRows) {
+            std::string l = row.labelCtrl->GetValue().Trim().ToStdString();
+            std::string v = row.valueCtrl->GetValue().Trim().ToStdString();
+            if (!l.empty() || !v.empty()) {
+                m_resultItem.customFields.push_back({ l, v });
+            }
+        }
+    }
+
+    EndModal(wxID_OK);
+}
+
+void EntryDialog::OnCancelClicked(wxCommandEvent& evt) {
+    EndModal(wxID_CANCEL);
+}
+
+VaultItem EntryDialog::GetVaultItem() const {
+    return m_resultItem;
+}
+
+void EntryDialog::UpdateImagePreview() {
+    if (!m_imagePanel || !m_imageThumbBmp || !m_imageNameLabel || !m_removeImageBtn) return;
+
+    if (m_resultItem.attachedImageBase64.empty()) {
+        m_imageThumbBmp->SetBitmap(wxNullBitmap);
+        m_imageNameLabel->SetLabel("No image attached (PNG, JPG, BMP supported).");
+        m_removeImageBtn->Show(false);
+    } else {
+        std::vector<uint8_t> raw = VaultCrypto::Base64Decode(m_resultItem.attachedImageBase64);
+        if (!raw.empty()) {
+            wxMemoryInputStream memStream(raw.data(), raw.size());
+            wxImage img(memStream);
+            if (img.IsOk()) {
+                wxImage thumb = img.Scale(90, 60, wxIMAGE_QUALITY_HIGH);
+                m_imageThumbBmp->SetBitmap(wxBitmap(thumb));
+            }
+        }
+        wxString nameStr = m_resultItem.attachedImageName.empty() ? "Attached Image" : wxString::FromUTF8(m_resultItem.attachedImageName.c_str());
+        m_imageNameLabel->SetLabel(nameStr);
+        m_removeImageBtn->Show(true);
+    }
+    m_imagePanel->Layout();
+}
+
+void EntryDialog::OnUploadImage(wxCommandEvent& evt) {
+    wxFileDialog openFileDialog(this, "Select Image or Document to Attach", "", "",
+        "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All Files (*.*)|*.*",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (openFileDialog.ShowModal() == wxID_CANCEL) return;
+
+    wxString path = openFileDialog.GetPath();
+    wxFileInputStream input(path);
+    if (!input.IsOk()) {
+        wxMessageBox("Could not open the selected file.", "Error", wxOK | wxICON_ERROR, this);
+        return;
+    }
+
+    size_t size = input.GetSize();
+    if (size > 15 * 1024 * 1024) { // 15MB limit
+        wxMessageBox("File is too large. Please select an image under 15MB.", "File Too Large", wxOK | wxICON_WARNING, this);
+        return;
+    }
+
+    std::vector<uint8_t> buf(size);
+    input.Read(buf.data(), size);
+
+    m_resultItem.attachedImageBase64 = VaultCrypto::Base64Encode(buf);
+    m_resultItem.attachedImageName = openFileDialog.GetFilename().ToStdString();
+
+    UpdateImagePreview();
+}
+
+void EntryDialog::OnRemoveImage(wxCommandEvent& evt) {
+    m_resultItem.attachedImageBase64.clear();
+    m_resultItem.attachedImageName.clear();
+    UpdateImagePreview();
+}
