@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Password Locker - Offline Password Vault & 2-Factor Authenticator
 
 A modern, polished, cross-platform C++ GUI application built with **wxWidgets** designed to store confidential passwords, documents/image attachments, and generate Time-based One-Time Passwords (TOTP / 2FA) **100% offline** with zero internet dependency.
@@ -120,3 +121,7 @@ cmake --build . --config Release
 ## Master PIN
 * **Default PIN**: `1234`
 * You can change the Master PIN anytime by clicking **`PIN Settings`** in the top navigation bar.
+=======
+# PasswordLocker
+An application designed for offline password storage and organization. It consists of frequently used forms and supports the storage of answers to security questions, and uploading images for the possible storage of documents or other information. Also performs 2-factor authentication processes.
+>>>>>>> e9f1e8dfa51b947dd8a7aeec83dc01f11bf274f2
