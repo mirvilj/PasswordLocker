@@ -1,0 +1,12 @@
+This was one part of a prompt I had made. I had copied this since I had submitted it and pressed enter too early. The rest is gone with rest of the conversation after I had accidentaly closed Powershell.
+"Some improvements need to be added to the locker. It should have more security features. It should have settings menu
+ one of the settings should be letting the user choose a time-frame after inactivity that will auto-lock the vault
+ requiring them to reenter their pin. Reasonably, are options between 1 minute, 2, 5, 10, 15 and 30 minutes, depending on their preference. I also think some of the options at the top can be moved to a more familiar style toolbar, at the top of the application. For example, under file could be new account, under edit could be undo last action, redo last
+  action,view could have a list of all tab names, and a sort option that expands to sort by time created or sort by
+  alphabetical, or sort by type. Also the all items list should have header titles that match each type and tab name if the list was to be sorted by type. There would be a tools section within the tool bar, and it would expand to tools for backup and restore. Backup and restore capabilities should also be implemented. For backup, the application should
+  create a compiled list of all data and accounts, saved passwords and security questions, and any data that has been
+  input, as well as tabs and organization settings and overall application settings. It should use some form of
+  cryptography or other ways to mask the data into a format that is difficult or impossible to read with a normal text
+  editor. it should hopefully be a format that only this application or similar types can read the contents of. Restoring would just being able to restore this data from these files types. "
+
+Another prevalent issue would be needing to correct out of place or seemingly random text or symbols.
