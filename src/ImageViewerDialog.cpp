@@ -1,5 +1,8 @@
 #include "ImageViewerDialog.h"
+<<<<<<< HEAD
 #include "ThemeManager.h"
+=======
+>>>>>>> origin
 #include <wx/dcbuffer.h>
 #include <algorithm>
 
@@ -44,12 +47,20 @@ void ImageViewerDialog::SetupUI() {
 
     // Top Controls Bar
     wxPanel* topBar = new wxPanel(this, wxID_ANY);
+<<<<<<< HEAD
     topBar->SetBackgroundColour(ThemeManager::Colors.headerBg);
+=======
+    topBar->SetBackgroundColour(wxColour(17, 24, 39)); // Slate 900
+>>>>>>> origin
     wxBoxSizer* barSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxString titleStr = m_imageName.empty() ? "Document Viewer" : wxString::FromUTF8(m_imageName.c_str());
     wxStaticText* titleLbl = new wxStaticText(topBar, wxID_ANY, titleStr);
+<<<<<<< HEAD
     titleLbl->SetForegroundColour(ThemeManager::Colors.headerText);
+=======
+    titleLbl->SetForegroundColour(*wxWHITE);
+>>>>>>> origin
     wxFont tf = titleLbl->GetFont();
     tf.SetPointSize(11);
     tf.SetWeight(wxFONTWEIGHT_BOLD);
@@ -65,7 +76,11 @@ void ImageViewerDialog::SetupUI() {
     barSizer->Add(zoomOutBtn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
 
     m_zoomLabel = new wxStaticText(topBar, wxID_ANY, "100%", wxDefaultPosition, wxSize(55, -1), wxALIGN_CENTER_HORIZONTAL);
+<<<<<<< HEAD
     m_zoomLabel->SetForegroundColour((ThemeManager::CurrentTheme == ThemeMode::HighContrast) ? ThemeManager::Colors.textSecondary : wxColour(203, 213, 225));
+=======
+    m_zoomLabel->SetForegroundColour(wxColour(203, 213, 225));
+>>>>>>> origin
     barSizer->Add(m_zoomLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
 
     wxButton* zoomInBtn = new wxButton(topBar, wxID_ANY, " + ", wxDefaultPosition, wxSize(36, 28));

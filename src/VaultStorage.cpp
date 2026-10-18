@@ -3,8 +3,11 @@
 #include <fstream>
 #include <algorithm>
 #include <iostream>
+<<<<<<< HEAD
 #include <ctime>
 #include <windows.h>
+=======
+>>>>>>> origin
 
 VaultStorage::VaultStorage(const std::string& dataFilePath)
     : m_filePath(dataFilePath) {
@@ -32,6 +35,7 @@ void VaultStorage::InitializeNewVault(const std::string& initialPin) {
     m_items.clear();
     EnsureDefaultTabs();
 
+<<<<<<< HEAD
     m_settings.autoLockMinutes = 5;
     m_settings.autoBackupDays = 7;
     m_settings.lastBackupTimestamp = 0;
@@ -41,6 +45,9 @@ void VaultStorage::InitializeNewVault(const std::string& initialPin) {
     m_settings.clipboardClearSeconds = 120;
 
     // Create starter welcome items
+=======
+    // Create a starter welcome item
+>>>>>>> origin
     VaultItem sample = VaultItem::CreateNew(AccountType::Basic, "Sample App Account", "General");
     sample.username = "johndoe";
     sample.email = "john.doe@example.com";
@@ -76,15 +83,21 @@ bool VaultStorage::VerifyPin(const std::string& pin) {
     return VaultCrypto::VerifyPin(pin, m_pinHash, m_salt);
 }
 
+<<<<<<< HEAD
 void VaultStorage::RecordPinChanged() {
     m_settings.lastPinChangeTimestamp = static_cast<int64_t>(std::time(nullptr));
 }
 
+=======
+>>>>>>> origin
 bool VaultStorage::ChangePin(const std::string& currentPin, const std::string& newPin) {
     if (!VerifyPin(currentPin)) return false;
     m_salt = VaultCrypto::GenerateRandomBytes(16);
     m_pinHash = VaultCrypto::HashPin(newPin, m_salt);
+<<<<<<< HEAD
     RecordPinChanged();
+=======
+>>>>>>> origin
     return Save(newPin);
 }
 
@@ -94,6 +107,7 @@ bool VaultStorage::Load(const std::string& pin) {
         return true;
     }
 
+<<<<<<< HEAD
     std::vector<std::string> pathsToTry = { m_filePath, m_filePath + ".tmp", "data/vault_recovery.dat" };
     bool loadedSuccessfully = false;
 
@@ -168,6 +182,60 @@ bool VaultStorage::Load(const std::string& pin) {
 }
 
 bool VaultStorage::SaveToFile(const std::string& path, const std::string& pin) {
+=======
+    std::ifstream inFile(m_filePath);
+    if (!inFile.is_open()) return false;
+
+    std::string jsonStr((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
+    inFile.close();
+
+    try {
+        nlohmann::json root = nlohmann::json::parse(jsonStr);
+        std::string saltHex = root.value("salt", "");
+        std::string ivHex = root.value("iv", "");
+        m_pinHash = root.value("pinHash", "");
+        std::string cipherHex = root.value("ciphertext", "");
+
+        m_salt = VaultCrypto::FromHex(saltHex);
+        std::vector<uint8_t> iv = VaultCrypto::FromHex(ivHex);
+        std::vector<uint8_t> cipher = VaultCrypto::FromHex(cipherHex);
+
+        if (!pin.empty() && !m_pinHash.empty()) {
+            if (!VaultCrypto::VerifyPin(pin, m_pinHash, m_salt)) {
+                return false; // Invalid PIN
+            }
+        }
+
+        std::vector<uint8_t> key = VaultCrypto::DeriveKey(pin, m_salt);
+        std::string plainJson = VaultCrypto::Decrypt(cipher, key, iv);
+        if (plainJson.empty()) {
+            return false;
+        }
+
+        nlohmann::json inner = nlohmann::json::parse(plainJson);
+        m_tabs.clear();
+        if (inner.contains("tabs") && inner["tabs"].is_array()) {
+            for (const auto& t : inner["tabs"]) {
+                m_tabs.push_back(t.get<std::string>());
+            }
+        }
+        EnsureDefaultTabs();
+
+        m_items.clear();
+        if (inner.contains("items") && inner["items"].is_array()) {
+            for (const auto& itemJson : inner["items"]) {
+                m_items.push_back(VaultItem::FromJson(itemJson));
+            }
+        }
+
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool VaultStorage::Save(const std::string& pin) {
+>>>>>>> origin
     if (m_salt.empty()) {
         m_salt = VaultCrypto::GenerateRandomBytes(16);
     }
@@ -181,6 +249,7 @@ bool VaultStorage::SaveToFile(const std::string& path, const std::string& pin) {
     nlohmann::json inner;
     inner["tabs"] = m_tabs;
 
+<<<<<<< HEAD
     nlohmann::json sj;
     sj["autoLockMinutes"] = m_settings.autoLockMinutes;
     sj["autoBackupDays"] = m_settings.autoBackupDays;
@@ -191,6 +260,8 @@ bool VaultStorage::SaveToFile(const std::string& path, const std::string& pin) {
     sj["clipboardClearSeconds"] = m_settings.clipboardClearSeconds;
     inner["settings"] = sj;
 
+=======
+>>>>>>> origin
     nlohmann::json itemsArr = nlohmann::json::array();
     for (const auto& item : m_items) {
         itemsArr.push_back(item.ToJson());
@@ -201,12 +272,17 @@ bool VaultStorage::SaveToFile(const std::string& path, const std::string& pin) {
     std::vector<uint8_t> cipher = VaultCrypto::Encrypt(innerStr, key, iv);
 
     nlohmann::json root;
+<<<<<<< HEAD
     root["version"] = 2;
+=======
+    root["version"] = 1;
+>>>>>>> origin
     root["salt"] = VaultCrypto::ToHex(m_salt);
     root["iv"] = VaultCrypto::ToHex(iv);
     root["pinHash"] = m_pinHash;
     root["ciphertext"] = VaultCrypto::ToHex(cipher);
 
+<<<<<<< HEAD
     // Atomic write using a temp file first to prevent crash corruption
     std::string tempPath = path + ".tmp";
     {
@@ -239,6 +315,15 @@ bool VaultStorage::Save(const std::string& pin) {
     return SaveToFile(m_filePath, pin);
 }
 
+=======
+    std::ofstream outFile(m_filePath);
+    if (!outFile.is_open()) return false;
+    outFile << root.dump(2);
+    outFile.close();
+    return true;
+}
+
+>>>>>>> origin
 void VaultStorage::AddItem(VaultItem item) {
     if (item.submittedTimestamp == 0) {
         item.submittedTimestamp = static_cast<int64_t>(std::time(nullptr));
@@ -251,6 +336,10 @@ void VaultStorage::AddItem(VaultItem item) {
 bool VaultStorage::UpdateItem(const VaultItem& updated) {
     for (size_t i = 0; i < m_items.size(); ++i) {
         if (m_items[i].id == updated.id) {
+<<<<<<< HEAD
+=======
+            // Keep original submission timestamp so order integrity is preserved
+>>>>>>> origin
             VaultItem itemCopy = updated;
             if (itemCopy.submittedTimestamp == 0) {
                 itemCopy.submittedTimestamp = m_items[i].submittedTimestamp;
@@ -296,6 +385,7 @@ void VaultStorage::SortByTimestamp(bool newestFirst) {
     }
 }
 
+<<<<<<< HEAD
 void VaultStorage::SortAlphabetical(bool aToZ) {
     std::sort(m_items.begin(), m_items.end(), [aToZ](const VaultItem& a, const VaultItem& b) {
         std::string lA = a.label;
@@ -365,6 +455,8 @@ void VaultStorage::SortByTags(bool sortItemsAlphabetical) {
     }
 }
 
+=======
+>>>>>>> origin
 void VaultStorage::MoveItem(size_t fromIndex, size_t toIndex) {
     if (fromIndex >= m_items.size() || toIndex >= m_items.size() || fromIndex == toIndex) {
         return;
@@ -378,6 +470,10 @@ void VaultStorage::MoveItem(size_t fromIndex, size_t toIndex) {
 }
 
 void VaultStorage::ReorderTabItems(const std::string& tabName, const std::vector<std::string>& itemIdsInOrder) {
+<<<<<<< HEAD
+=======
+    // Collect non-tab items
+>>>>>>> origin
     std::vector<VaultItem> remaining;
     std::vector<VaultItem> tabItems;
 
@@ -389,6 +485,10 @@ void VaultStorage::ReorderTabItems(const std::string& tabName, const std::vector
         }
     }
 
+<<<<<<< HEAD
+=======
+    // Sort tabItems according to itemIdsInOrder
+>>>>>>> origin
     std::vector<VaultItem> reordered;
     for (const auto& id : itemIdsInOrder) {
         for (const auto& item : tabItems) {
@@ -399,6 +499,10 @@ void VaultStorage::ReorderTabItems(const std::string& tabName, const std::vector
         }
     }
 
+<<<<<<< HEAD
+=======
+    // Append any tab items not in itemIdsInOrder
+>>>>>>> origin
     for (const auto& item : tabItems) {
         bool found = false;
         for (const auto& r : reordered) {
@@ -432,6 +536,10 @@ bool VaultStorage::RemoveTab(const std::string& tabName) {
     auto it = std::find(m_tabs.begin(), m_tabs.end(), tabName);
     if (it != m_tabs.end()) {
         m_tabs.erase(it);
+<<<<<<< HEAD
+=======
+        // Move items from removed tab to "General"
+>>>>>>> origin
         for (auto& item : m_items) {
             if (item.tabName == tabName) {
                 item.tabName = "General";
@@ -457,6 +565,10 @@ std::vector<VaultItem*> VaultStorage::GetFilteredItems(const std::string& tabNam
     for (auto& item : m_items) {
         bool matchesTab = (tabName == "All" || tabName.empty() || item.tabName == tabName);
         if (!matchesTab) {
+<<<<<<< HEAD
+=======
+            // Also allow filtering by account type tab names
+>>>>>>> origin
             if (tabName == "Basic Passwords" && item.type == AccountType::Basic) matchesTab = true;
             else if (tabName == "Security Questions" && item.type == AccountType::SecurityQuestions) matchesTab = true;
             else if (tabName == "Miscellaneous" && item.type == AccountType::Miscellaneous) matchesTab = true;
@@ -483,6 +595,7 @@ std::vector<VaultItem*> VaultStorage::GetFilteredItems(const std::string& tabNam
     }
     return result;
 }
+<<<<<<< HEAD
 
 // Undo / Redo
 void VaultStorage::PushUndoState(const std::string& actionName) {
@@ -739,3 +852,5 @@ bool VaultStorage::CheckAndPerformAutoBackup(const std::string& currentPin) {
     }
     return false;
 }
+=======
+>>>>>>> origin

@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <wx/notebook.h>
 #include <wx/scrolwin.h>
+<<<<<<< HEAD
 #include <wx/timer.h>
 #include "VaultStorage.h"
 #include <string>
@@ -18,18 +19,27 @@ public:
 private:
     class MainWindow* m_win;
 };
+=======
+#include "VaultStorage.h"
+#include <string>
+#include <vector>
+>>>>>>> origin
 
 class MainWindow : public wxFrame {
 public:
     MainWindow(const wxString& title);
     virtual ~MainWindow();
 
+<<<<<<< HEAD
     void ResetInactivityTimer();
 
+=======
+>>>>>>> origin
 private:
     VaultStorage m_storage;
     std::string m_currentPin;
     bool m_isUnlockedSession;
+<<<<<<< HEAD
     enum class SortDisplayMode { None, Type, Tag };
     SortDisplayMode m_sortDisplayMode;
     bool m_pinReminderShown;
@@ -70,28 +80,47 @@ private:
     wxButton* m_zoomOutBtn;
     wxButton* m_zoomInBtn;
     wxButton* m_zoomResetBtn;
+=======
+
+    // Controls
+    wxNotebook* m_notebook;
+    wxTextCtrl* m_searchCtrl;
+    wxStaticText* m_statusLabel;
+    wxStaticText* m_itemCountLabel;
+>>>>>>> origin
 
     // Containers per tab
     struct TabPageInfo {
         std::string tabName;
+<<<<<<< HEAD
         wxPanel* pagePanel;
+=======
+>>>>>>> origin
         wxScrolledWindow* scrollWin;
         wxBoxSizer* cardsSizer;
     };
     std::vector<TabPageInfo> m_tabPages;
 
+<<<<<<< HEAD
     // UI Setup & Theming
     void SetupMenuBar();
+=======
+>>>>>>> origin
     void SetupUI();
     void SetupNotebookTabs();
     void RefreshCurrentTabList();
     void RefreshAllTabs();
+<<<<<<< HEAD
     void ApplyTheme();
     void UpdateEditMenuState();
 
     bool PromptAndVerifyPin(const std::string& purposeLabel = "");
     void LockSession(bool byInactivity = false);
     void CheckPinReminder();
+=======
+
+    bool PromptAndVerifyPin(const std::string& purposeLabel = "");
+>>>>>>> origin
 
     // Zoom controls
     double m_zoomLevel;
@@ -102,16 +131,25 @@ private:
     void OnZoomReset(wxCommandEvent& evt);
     void OnMouseWheel(wxMouseEvent& evt);
 
+<<<<<<< HEAD
     // Menu & Toolbar Handlers
     void OnNewEntry(wxCommandEvent& evt);
     void OnExit(wxCommandEvent& evt);
     void OnAddNewTab(wxCommandEvent& evt);
     void OnOpenTotpHub(wxCommandEvent& evt);
+=======
+    // Actions
+    void OnNewEntry(wxCommandEvent& evt);
+    void OnAddNewTab(wxCommandEvent& evt);
+    void OnOpenTotpHub(wxCommandEvent& evt);
+    void OnSortByTime(wxCommandEvent& evt);
+>>>>>>> origin
     void OnLockVault(wxCommandEvent& evt);
     void OnChangePin(wxCommandEvent& evt);
     void OnSearchUpdated(wxCommandEvent& evt);
     void OnNotebookPageChanged(wxBookCtrlEvent& evt);
 
+<<<<<<< HEAD
     // Edit actions (Undo / Redo)
     void OnUndo(wxCommandEvent& evt);
     void OnRedo(wxCommandEvent& evt);
@@ -148,6 +186,8 @@ private:
     // Timer Tick
     void OnTickerTimer(wxTimerEvent& evt);
 
+=======
+>>>>>>> origin
     // Item Card callbacks
     void OnUnlockItem(const std::string& itemId);
     void OnDeleteItem(const std::string& itemId);

@@ -1,7 +1,10 @@
 #include "EntryDialog.h"
 #include "TotpEngine.h"
 #include "VaultCrypto.h"
+<<<<<<< HEAD
 #include "ThemeManager.h"
+=======
+>>>>>>> origin
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <random>
@@ -13,10 +16,14 @@ EntryDialog::EntryDialog(wxWindow* parent,
     : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxSize(660, 740), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
       m_availableTabs(availableTabs),
       m_isEditing(existingItem != nullptr),
+<<<<<<< HEAD
       m_typeBox(nullptr),
       m_typeBasicRadio(nullptr),
       m_typeSecQuestionsRadio(nullptr),
       m_typeMiscRadio(nullptr),
+=======
+      m_typeRadio(nullptr),
+>>>>>>> origin
       m_labelCtrl(nullptr),
       m_tabCombo(nullptr),
       m_newTabBtn(nullptr),
@@ -52,6 +59,7 @@ EntryDialog::EntryDialog(wxWindow* parent,
         SetTitle("Password Locker - Add New Vault Entry");
     }
 
+<<<<<<< HEAD
     SetBackgroundColour(ThemeManager::Colors.windowBg);
     SetupUI();
 
@@ -63,6 +71,13 @@ EntryDialog::EntryDialog(wxWindow* parent,
         } else {
             m_typeBasicRadio->SetValue(true);
         }
+=======
+    SetBackgroundColour(wxColour(248, 250, 252));
+    SetupUI();
+
+    if (m_isEditing && existingItem) {
+        m_typeRadio->SetSelection(static_cast<int>(existingItem->type));
+>>>>>>> origin
         m_labelCtrl->SetValue(wxString::FromUTF8(existingItem->label.c_str()));
         m_tabCombo->SetValue(wxString::FromUTF8(existingItem->tabName.c_str()));
         m_usernameCtrl->SetValue(wxString::FromUTF8(existingItem->username.c_str()));
@@ -85,7 +100,11 @@ EntryDialog::EntryDialog(wxWindow* parent,
     }
 
     UpdateImagePreview();
+<<<<<<< HEAD
     AdaptFieldsToType(GetSelectedAccountType());
+=======
+    AdaptFieldsToType(static_cast<AccountType>(m_typeRadio->GetSelection()));
+>>>>>>> origin
 }
 
 void EntryDialog::SetupUI() {
@@ -93,11 +112,19 @@ void EntryDialog::SetupUI() {
 
     // Top Header
     wxPanel* headerPanel = new wxPanel(this, wxID_ANY);
+<<<<<<< HEAD
     headerPanel->SetBackgroundColour(ThemeManager::Colors.headerBg);
     wxBoxSizer* headerSizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticText* titleTxt = new wxStaticText(headerPanel, wxID_ANY, m_isEditing ? "Edit Account Record" : "Add New Vault Record");
     titleTxt->SetForegroundColour(ThemeManager::Colors.headerText);
+=======
+    headerPanel->SetBackgroundColour(wxColour(15, 23, 42)); // Slate 900
+    wxBoxSizer* headerSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* titleTxt = new wxStaticText(headerPanel, wxID_ANY, m_isEditing ? "Edit Account Record" : "Add New Vault Record");
+    titleTxt->SetForegroundColour(*wxWHITE);
+>>>>>>> origin
     wxFont f = titleTxt->GetFont();
     f.SetPointSize(13);
     f.SetWeight(wxFONTWEIGHT_BOLD);
@@ -105,7 +132,11 @@ void EntryDialog::SetupUI() {
 
     wxStaticText* descTxt = new wxStaticText(headerPanel, wxID_ANY,
         "Select account type below. Fields dynamically adapt to match your selection.");
+<<<<<<< HEAD
     descTxt->SetForegroundColour((ThemeManager::CurrentTheme == ThemeMode::HighContrast) ? ThemeManager::Colors.textSecondary : wxColour(148, 163, 184));
+=======
+    descTxt->SetForegroundColour(wxColour(148, 163, 184));
+>>>>>>> origin
 
     headerSizer->Add(titleTxt, 0, wxALL, 12);
     headerSizer->Add(descTxt, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -115,6 +146,7 @@ void EntryDialog::SetupUI() {
     // Main Scrollable Body
     wxScrolledWindow* bodyScroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     bodyScroll->SetScrollRate(0, 10);
+<<<<<<< HEAD
     bodyScroll->SetBackgroundColour(ThemeManager::Colors.windowBg);
     wxBoxSizer* bodySizer = new wxBoxSizer(wxVERTICAL);
 
@@ -148,6 +180,21 @@ void EntryDialog::SetupUI() {
     m_typeBox->Add(m_typeSecQuestionsRadio, 0, wxLEFT | wxRIGHT | wxBOTTOM, 6);
     m_typeBox->Add(m_typeMiscRadio, 0, wxLEFT | wxRIGHT | wxBOTTOM, 6);
     bodySizer->Add(m_typeBox, 0, wxEXPAND | wxALL, 12);
+=======
+    wxBoxSizer* bodySizer = new wxBoxSizer(wxVERTICAL);
+
+    // 1. Account Type Selector
+    wxArrayString types;
+    types.Add("1. Basic App Password (General Purpose)");
+    types.Add("2. Account with Security Questions");
+    types.Add("3. Miscellaneous Information (Custom Fields & Tabs)");
+
+    m_typeRadio = new wxRadioBox(bodyScroll, wxID_ANY, "Select Account Type:",
+                                 wxDefaultPosition, wxDefaultSize, types, 1, wxRA_SPECIFY_COLS);
+    m_typeRadio->SetSelection(0);
+    m_typeRadio->Bind(wxEVT_RADIOBOX, &EntryDialog::OnTypeChanged, this);
+    bodySizer->Add(m_typeRadio, 0, wxEXPAND | wxALL, 12);
+>>>>>>> origin
 
     // 2. Common Header Fields: Label / Name & Tab Category
     wxFlexGridSizer* topGrid = new wxFlexGridSizer(2, 2, 8, 10);
@@ -180,7 +227,10 @@ void EntryDialog::SetupUI() {
 
     // 3. Basic Credentials Panel (Username, Email, Password, URL, Notes)
     m_basicCredsPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
     m_basicCredsPanel->SetBackgroundColour(ThemeManager::Colors.windowBg);
+=======
+>>>>>>> origin
     wxBoxSizer* basicSizer = new wxBoxSizer(wxVERTICAL);
 
     wxFlexGridSizer* credGrid = new wxFlexGridSizer(2, 2, 8, 10);
@@ -226,11 +276,17 @@ void EntryDialog::SetupUI() {
     m_basicCredsPanel->SetSizer(basicSizer);
     bodySizer->Add(m_basicCredsPanel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
+<<<<<<< HEAD
     const auto& th = ThemeManager::Colors;
 
     // 4. Security Questions Dynamic Section
     m_secQuestionsSection = new wxPanel(bodyScroll, wxID_ANY);
     m_secQuestionsSection->SetBackgroundColour(th.cardBg);
+=======
+    // 4. Security Questions Dynamic Section
+    m_secQuestionsSection = new wxPanel(bodyScroll, wxID_ANY);
+    m_secQuestionsSection->SetBackgroundColour(wxColour(241, 245, 249));
+>>>>>>> origin
     wxBoxSizer* sqHeaderSizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer* sqTopRow = new wxBoxSizer(wxHORIZONTAL);
@@ -238,7 +294,10 @@ void EntryDialog::SetupUI() {
     wxFont sqFont = sqTitle->GetFont();
     sqFont.SetWeight(wxFONTWEIGHT_BOLD);
     sqTitle->SetFont(sqFont);
+<<<<<<< HEAD
     sqTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
 
     m_addQuestionBtn = new wxButton(m_secQuestionsSection, wxID_ANY, "+ Add Question", wxDefaultPosition, wxSize(120, 28));
     m_addQuestionBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnAddQuestionClicked, this);
@@ -249,7 +308,10 @@ void EntryDialog::SetupUI() {
 
     m_questionsScroll = new wxScrolledWindow(m_secQuestionsSection, wxID_ANY, wxDefaultPosition, wxSize(-1, 140), wxVSCROLL);
     m_questionsScroll->SetScrollRate(0, 10);
+<<<<<<< HEAD
     m_questionsScroll->SetBackgroundColour(th.cardBg);
+=======
+>>>>>>> origin
     m_questionsSizer = new wxBoxSizer(wxVERTICAL);
     m_questionsScroll->SetSizer(m_questionsSizer);
     sqHeaderSizer->Add(m_questionsScroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
@@ -259,7 +321,11 @@ void EntryDialog::SetupUI() {
 
     // 5. Miscellaneous Information / Custom Fields Section
     m_miscCustomSection = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
     m_miscCustomSection->SetBackgroundColour(th.cardBg);
+=======
+    m_miscCustomSection->SetBackgroundColour(wxColour(241, 245, 249));
+>>>>>>> origin
     wxBoxSizer* miscHeaderSizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer* miscTopRow = new wxBoxSizer(wxHORIZONTAL);
@@ -267,7 +333,10 @@ void EntryDialog::SetupUI() {
     wxFont miscFont = miscTitle->GetFont();
     miscFont.SetWeight(wxFONTWEIGHT_BOLD);
     miscTitle->SetFont(miscFont);
+<<<<<<< HEAD
     miscTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
 
     m_addCustomFieldBtn = new wxButton(m_miscCustomSection, wxID_ANY, "+ Add Custom Field", wxDefaultPosition, wxSize(140, 28));
     m_addCustomFieldBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnAddCustomFieldClicked, this);
@@ -278,27 +347,41 @@ void EntryDialog::SetupUI() {
 
     m_customFieldsScroll = new wxScrolledWindow(m_miscCustomSection, wxID_ANY, wxDefaultPosition, wxSize(-1, 140), wxVSCROLL);
     m_customFieldsScroll->SetScrollRate(0, 10);
+<<<<<<< HEAD
     m_customFieldsScroll->SetBackgroundColour(th.cardBg);
+=======
+>>>>>>> origin
     m_customFieldsSizer = new wxBoxSizer(wxVERTICAL);
     m_customFieldsScroll->SetSizer(m_customFieldsSizer);
     miscHeaderSizer->Add(m_customFieldsScroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
 
     // Attached Image / Document upload panel
     m_imagePanel = new wxPanel(m_miscCustomSection, wxID_ANY);
+<<<<<<< HEAD
     m_imagePanel->SetBackgroundColour(th.cardBg);
+=======
+    m_imagePanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
     wxBoxSizer* imgBoxSizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticText* imgTitle = new wxStaticText(m_imagePanel, wxID_ANY, "Attached Document / Image (Optional):");
     wxFont imgF = imgTitle->GetFont();
     imgF.SetWeight(wxFONTWEIGHT_BOLD);
     imgTitle->SetFont(imgF);
+<<<<<<< HEAD
     imgTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
     imgBoxSizer->Add(imgTitle, 0, wxALL, 6);
 
     wxBoxSizer* imgRow = new wxBoxSizer(wxHORIZONTAL);
     m_imageThumbBmp = new wxStaticBitmap(m_imagePanel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(90, 60));
     m_imageNameLabel = new wxStaticText(m_imagePanel, wxID_ANY, "No image attached.");
+<<<<<<< HEAD
     m_imageNameLabel->SetForegroundColour(th.textMuted);
+=======
+    m_imageNameLabel->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
 
     m_uploadImageBtn = new wxButton(m_imagePanel, wxID_ANY, "Upload Image...", wxDefaultPosition, wxSize(120, 28));
     m_uploadImageBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnUploadImage, this);
@@ -321,14 +404,21 @@ void EntryDialog::SetupUI() {
 
     // 6. 2-Factor Authentication (TOTP Secret Key)
     wxPanel* totpPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
     totpPanel->SetBackgroundColour(th.cardBg);
+=======
+    totpPanel->SetBackgroundColour(wxColour(238, 242, 255)); // Light indigo
+>>>>>>> origin
     wxBoxSizer* totpSizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticText* totpTitle = new wxStaticText(totpPanel, wxID_ANY, "Two-Factor Authentication (2FA / TOTP) Secret Key:");
     wxFont tf = totpTitle->GetFont();
     tf.SetWeight(wxFONTWEIGHT_BOLD);
     totpTitle->SetFont(tf);
+<<<<<<< HEAD
     totpTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
     totpSizer->Add(totpTitle, 0, wxBOTTOM, 4);
 
     wxBoxSizer* totpRow = new wxBoxSizer(wxHORIZONTAL);
@@ -346,7 +436,11 @@ void EntryDialog::SetupUI() {
     totpSizer->Add(totpRow, 0, wxEXPAND | wxBOTTOM, 4);
 
     m_totpStatusLabel = new wxStaticText(totpPanel, wxID_ANY, "Leave blank if this account does not use 2FA.");
+<<<<<<< HEAD
     m_totpStatusLabel->SetForegroundColour(th.textMuted);
+=======
+    m_totpStatusLabel->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
     totpSizer->Add(m_totpStatusLabel, 0);
 
     totpPanel->SetSizer(totpSizer);
@@ -362,6 +456,7 @@ void EntryDialog::SetupUI() {
 
     // Bottom Action Buttons
     wxPanel* bottomPanel = new wxPanel(this, wxID_ANY);
+<<<<<<< HEAD
     bottomPanel->SetBackgroundColour(th.headerBg);
     wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -378,6 +473,16 @@ void EntryDialog::SetupUI() {
         saveBtn->SetBackgroundColour(wxColour(37, 99, 235));
         saveBtn->SetForegroundColour(*wxWHITE);
     }
+=======
+    bottomPanel->SetBackgroundColour(wxColour(241, 245, 249));
+    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxButton* cancelBtn = new wxButton(bottomPanel, wxID_CANCEL, "Cancel", wxDefaultPosition, wxSize(90, 34));
+    wxButton* saveBtn = new wxButton(bottomPanel, wxID_OK, m_isEditing ? "Save Changes" : "Submit Account", wxDefaultPosition, wxSize(130, 34));
+    saveBtn->SetDefault();
+    saveBtn->SetBackgroundColour(wxColour(37, 99, 235));
+    saveBtn->SetForegroundColour(*wxWHITE);
+>>>>>>> origin
 
     cancelBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnCancelClicked, this);
     saveBtn->Bind(wxEVT_BUTTON, &EntryDialog::OnSaveClicked, this);
@@ -389,8 +494,11 @@ void EntryDialog::SetupUI() {
 
     rootSizer->Add(bottomPanel, 0, wxEXPAND | wxALL, 10);
 
+<<<<<<< HEAD
     ThemeManager::ApplyThemeToWindow(this);
 
+=======
+>>>>>>> origin
     SetSizer(rootSizer);
     CenterOnParent();
 }
@@ -417,6 +525,7 @@ void EntryDialog::AdaptFieldsToType(AccountType type) {
     FitInside();
 }
 
+<<<<<<< HEAD
 AccountType EntryDialog::GetSelectedAccountType() const {
     if (m_typeSecQuestionsRadio && m_typeSecQuestionsRadio->GetValue()) {
         return AccountType::SecurityQuestions;
@@ -429,11 +538,19 @@ AccountType EntryDialog::GetSelectedAccountType() const {
 
 void EntryDialog::OnTypeRadioChanged(wxCommandEvent&) {
     AdaptFieldsToType(GetSelectedAccountType());
+=======
+void EntryDialog::OnTypeChanged(wxCommandEvent& evt) {
+    AccountType type = static_cast<AccountType>(evt.GetSelection());
+    AdaptFieldsToType(type);
+>>>>>>> origin
 }
 
 void EntryDialog::AddQuestionRow(const std::string& q, const std::string& a) {
     wxPanel* rowPanel = new wxPanel(m_questionsScroll, wxID_ANY);
+<<<<<<< HEAD
     rowPanel->SetBackgroundColour(ThemeManager::Colors.cardBg);
+=======
+>>>>>>> origin
     wxBoxSizer* rowSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxTextCtrl* qCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(q.c_str()), wxDefaultPosition, wxSize(200, 28));
@@ -450,7 +567,10 @@ void EntryDialog::AddQuestionRow(const std::string& q, const std::string& a) {
     rowSizer->Add(rmBtn, 0);
 
     rowPanel->SetSizer(rowSizer);
+<<<<<<< HEAD
     ThemeManager::ApplyThemeToWindow(rowPanel);
+=======
+>>>>>>> origin
     m_questionsSizer->Add(rowPanel, 0, wxEXPAND | wxBOTTOM, 6);
 
     QuestionRow qr;
@@ -482,7 +602,10 @@ void EntryDialog::RemoveQuestionRow(wxPanel* panel) {
 
 void EntryDialog::AddCustomFieldRow(const std::string& lbl, const std::string& val) {
     wxPanel* rowPanel = new wxPanel(m_customFieldsScroll, wxID_ANY);
+<<<<<<< HEAD
     rowPanel->SetBackgroundColour(ThemeManager::Colors.cardBg);
+=======
+>>>>>>> origin
     wxBoxSizer* rowSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxTextCtrl* lCtrl = new wxTextCtrl(rowPanel, wxID_ANY, wxString::FromUTF8(lbl.c_str()), wxDefaultPosition, wxSize(180, 28));
@@ -499,7 +622,10 @@ void EntryDialog::AddCustomFieldRow(const std::string& lbl, const std::string& v
     rowSizer->Add(rmBtn, 0);
 
     rowPanel->SetSizer(rowSizer);
+<<<<<<< HEAD
     ThemeManager::ApplyThemeToWindow(rowPanel);
+=======
+>>>>>>> origin
     m_customFieldsSizer->Add(rowPanel, 0, wxEXPAND | wxBOTTOM, 6);
 
     CustomFieldRow cfr;
@@ -580,8 +706,13 @@ void EntryDialog::OnGeneratePasswordClicked(wxCommandEvent& evt) {
     m_passwordCtrl->SetValue(pass);
 }
 
+<<<<<<< HEAD
 void EntryDialog::OnAddNewTabClicked(wxCommandEvent&) {
     wxTextEntryDialog dlg(this, "Enter a new tag name for this tab:", "Create a New tab");
+=======
+void EntryDialog::OnAddNewTabClicked(wxCommandEvent& evt) {
+    wxTextEntryDialog dlg(this, "Enter name for new Tab / Section:", "Create New Tab");
+>>>>>>> origin
     if (dlg.ShowModal() == wxID_OK) {
         wxString newTab = dlg.GetValue().Trim();
         if (!newTab.empty()) {
@@ -593,6 +724,7 @@ void EntryDialog::OnAddNewTabClicked(wxCommandEvent&) {
 
 void EntryDialog::OnTotpTextChange(wxCommandEvent& evt) {
     std::string secret = m_totpSecretCtrl->GetValue().ToStdString();
+<<<<<<< HEAD
     const auto& th = ThemeManager::Colors;
     if (secret.empty()) {
         m_totpStatusLabel->SetLabel("Leave blank if this account does not use 2FA.");
@@ -604,6 +736,18 @@ void EntryDialog::OnTotpTextChange(wxCommandEvent& evt) {
     } else {
         m_totpStatusLabel->SetLabel("Invalid Base32 secret key. Allowed characters: A-Z, 2-7.");
         m_totpStatusLabel->SetForegroundColour(th.danger);
+=======
+    if (secret.empty()) {
+        m_totpStatusLabel->SetLabel("Leave blank if this account does not use 2FA.");
+        m_totpStatusLabel->SetForegroundColour(wxColour(100, 116, 139));
+    } else if (TotpEngine::IsValidBase32(secret)) {
+        std::string sample = TotpEngine::GenerateCode(secret);
+        m_totpStatusLabel->SetLabel("Valid 2FA Base32 Secret! Current Token: " + sample);
+        m_totpStatusLabel->SetForegroundColour(wxColour(22, 163, 74)); // Green
+    } else {
+        m_totpStatusLabel->SetLabel("Invalid Base32 secret key. Allowed characters: A-Z, 2-7.");
+        m_totpStatusLabel->SetForegroundColour(wxColour(220, 38, 38)); // Red
+>>>>>>> origin
     }
 }
 
@@ -615,7 +759,11 @@ void EntryDialog::OnSaveClicked(wxCommandEvent& evt) {
         return;
     }
 
+<<<<<<< HEAD
     AccountType type = GetSelectedAccountType();
+=======
+    AccountType type = static_cast<AccountType>(m_typeRadio->GetSelection());
+>>>>>>> origin
     m_resultItem.type = type;
     m_resultItem.label = label.ToStdString();
     m_resultItem.tabName = m_tabCombo->GetValue().Trim().ToStdString();

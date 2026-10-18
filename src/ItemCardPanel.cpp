@@ -1,5 +1,8 @@
 #include "ItemCardPanel.h"
+<<<<<<< HEAD
 #include "ThemeManager.h"
+=======
+>>>>>>> origin
 #include <wx/menu.h>
 
 CardDropTarget::CardDropTarget(ItemCardPanel* owner)
@@ -38,7 +41,11 @@ ItemCardPanel::ItemCardPanel(wxWindow* parent,
       m_availableTabs(availableTabs),
       m_isDragging(false) {
 
+<<<<<<< HEAD
     SetBackgroundColour(ThemeManager::Colors.cardBg);
+=======
+    SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
     SetDropTarget(new CardDropTarget(this));
     SetupUI();
     SetupEvents(this);
@@ -51,6 +58,7 @@ void ItemCardPanel::SetupEvents(wxWindow* win) {
     win->Bind(wxEVT_CONTEXT_MENU, &ItemCardPanel::OnContextMenu, this);
 
     win->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+<<<<<<< HEAD
         if (ThemeManager::CurrentTheme == ThemeMode::Dark) {
             SetBackgroundColour(wxColour(39, 53, 76));
         } else if (ThemeManager::CurrentTheme == ThemeMode::HighContrast) {
@@ -58,15 +66,26 @@ void ItemCardPanel::SetupEvents(wxWindow* win) {
         } else {
             SetBackgroundColour(wxColour(248, 250, 252));
         }
+=======
+        SetBackgroundColour(wxColour(248, 250, 252));
+>>>>>>> origin
         Refresh();
         e.Skip();
     });
     win->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+<<<<<<< HEAD
         SetBackgroundColour(ThemeManager::Colors.cardBg);
+=======
+        SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         Refresh();
         e.Skip();
     });
 
+<<<<<<< HEAD
+=======
+    // Recursively attach mouse events to children (except buttons) so whole card is draggable and clickable
+>>>>>>> origin
     for (wxWindowList::compatibility_iterator node = win->GetChildren().GetFirst(); node; node = node->GetNext()) {
         wxWindow* child = node->GetData();
         if (!dynamic_cast<wxButton*>(child)) {
@@ -76,7 +95,10 @@ void ItemCardPanel::SetupEvents(wxWindow* win) {
 }
 
 void ItemCardPanel::SetupUI() {
+<<<<<<< HEAD
     const auto& th = ThemeManager::Colors;
+=======
+>>>>>>> origin
     wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
 
     int titlePt = std::max(8, static_cast<int>(12 * m_zoom));
@@ -86,11 +108,19 @@ void ItemCardPanel::SetupUI() {
     // Left drag handle indicator
     int barWidth = std::max(18, static_cast<int>(22 * m_zoom));
     wxPanel* dragBar = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(barWidth, -1));
+<<<<<<< HEAD
     dragBar->SetBackgroundColour(th.buttonBg);
     wxBoxSizer* dragBarSizer = new wxBoxSizer(wxVERTICAL);
     dragBarSizer->AddStretchSpacer();
     wxStaticText* dragHandleTxt = new wxStaticText(dragBar, wxID_ANY, "||");
     dragHandleTxt->SetForegroundColour(th.textMuted);
+=======
+    dragBar->SetBackgroundColour(wxColour(241, 245, 249)); // Slate 100
+    wxBoxSizer* dragBarSizer = new wxBoxSizer(wxVERTICAL);
+    dragBarSizer->AddStretchSpacer();
+    wxStaticText* dragHandleTxt = new wxStaticText(dragBar, wxID_ANY, "||");
+    dragHandleTxt->SetForegroundColour(wxColour(148, 163, 184));
+>>>>>>> origin
     wxFont dhf = dragHandleTxt->GetFont();
     dhf.SetWeight(wxFONTWEIGHT_BOLD);
     dragHandleTxt->SetFont(dhf);
@@ -109,6 +139,7 @@ void ItemCardPanel::SetupUI() {
     lf.SetPointSize(titlePt);
     lf.SetWeight(wxFONTWEIGHT_BOLD);
     labelTxt->SetFont(lf);
+<<<<<<< HEAD
     labelTxt->SetForegroundColour(th.textPrimary);
 
     wxString typeStr = wxString::FromUTF8(AccountTypeToString(m_item.type).c_str());
@@ -135,6 +166,20 @@ void ItemCardPanel::SetupUI() {
             badgeBg = wxColour(243, 232, 255);
             badgeFg = wxColour(126, 34, 206);
         }
+=======
+    labelTxt->SetForegroundColour(wxColour(15, 23, 42));
+
+    wxString typeStr = wxString::FromUTF8(AccountTypeToString(m_item.type).c_str());
+    wxStaticText* typeBadge = new wxStaticText(this, wxID_ANY, "  " + typeStr + "  ");
+    wxColour badgeBg(224, 242, 254);
+    wxColour badgeFg(3, 105, 161);
+    if (m_item.type == AccountType::SecurityQuestions) {
+        badgeBg = wxColour(254, 243, 199);
+        badgeFg = wxColour(180, 83, 9);
+    } else if (m_item.type == AccountType::Miscellaneous) {
+        badgeBg = wxColour(243, 232, 255);
+        badgeFg = wxColour(126, 34, 206);
+>>>>>>> origin
     }
     typeBadge->SetBackgroundColour(badgeBg);
     typeBadge->SetForegroundColour(badgeFg);
@@ -143,25 +188,44 @@ void ItemCardPanel::SetupUI() {
     titleRow->Add(typeBadge, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
 
     if (!m_item.totpSecret.empty()) {
+<<<<<<< HEAD
         wxStaticText* totpBadge = new wxStaticText(this, wxID_ANY, " 2FA Active ");
         totpBadge->SetBackgroundColour(th.tagBg);
         totpBadge->SetForegroundColour(th.success);
+=======
+        wxStaticText* totpBadge = new wxStaticText(this, wxID_ANY, "  2FA Active  ");
+        totpBadge->SetBackgroundColour(wxColour(220, 252, 231));
+        totpBadge->SetForegroundColour(wxColour(21, 128, 61));
+>>>>>>> origin
         titleRow->Add(totpBadge, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
     }
 
     if (!m_item.attachedImageBase64.empty()) {
+<<<<<<< HEAD
         wxStaticText* imgBadge = new wxStaticText(this, wxID_ANY, " Document Attached ");
         imgBadge->SetBackgroundColour(th.tagBg);
         imgBadge->SetForegroundColour(th.warning);
+=======
+        wxStaticText* imgBadge = new wxStaticText(this, wxID_ANY, "  Image Attached  ");
+        imgBadge->SetBackgroundColour(wxColour(254, 249, 195));
+        imgBadge->SetForegroundColour(wxColour(161, 98, 7));
+>>>>>>> origin
         titleRow->Add(imgBadge, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
     }
 
     contentSizer->Add(titleRow, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
 
+<<<<<<< HEAD
     // 2. Bold Submission Timestamp row
     wxBoxSizer* timeRow = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* timePrompt = new wxStaticText(this, wxID_ANY, "Submitted: ");
     timePrompt->SetForegroundColour(th.textMuted);
+=======
+    // 2. Bold Submission Timestamp row (User requirement: shows this time to user in bold)
+    wxBoxSizer* timeRow = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* timePrompt = new wxStaticText(this, wxID_ANY, "Submitted: ");
+    timePrompt->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
     wxFont pf = timePrompt->GetFont();
     pf.SetPointSize(timePt);
     timePrompt->SetFont(pf);
@@ -170,12 +234,21 @@ void ItemCardPanel::SetupUI() {
     wxStaticText* boldTimeTxt = new wxStaticText(this, wxID_ANY, wxString::FromUTF8(m_item.submittedTimeFormatted.c_str()));
     wxFont timeFont = boldTimeTxt->GetFont();
     timeFont.SetPointSize(timePt);
+<<<<<<< HEAD
     timeFont.SetWeight(wxFONTWEIGHT_BOLD);
     boldTimeTxt->SetFont(timeFont);
     boldTimeTxt->SetForegroundColour(th.warning);
 
     wxStaticText* tabTxt = new wxStaticText(this, wxID_ANY, "   Section: " + wxString::FromUTF8(m_item.tabName.c_str()));
     tabTxt->SetForegroundColour(th.textSecondary);
+=======
+    timeFont.SetWeight(wxFONTWEIGHT_BOLD); // Bold submission time!
+    boldTimeTxt->SetFont(timeFont);
+    boldTimeTxt->SetForegroundColour(wxColour(30, 41, 59));
+
+    wxStaticText* tabTxt = new wxStaticText(this, wxID_ANY, "   Section: " + wxString::FromUTF8(m_item.tabName.c_str()));
+    tabTxt->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
     wxFont tf = tabTxt->GetFont();
     tf.SetPointSize(timePt);
     tabTxt->SetFont(tf);
@@ -185,9 +258,15 @@ void ItemCardPanel::SetupUI() {
     timeRow->Add(tabTxt, 0, wxALIGN_CENTER_VERTICAL);
     contentSizer->Add(timeRow, 0, wxEXPAND | wxBOTTOM, 4);
 
+<<<<<<< HEAD
     // 3. Hidden Content placeholder
     wxStaticText* hiddenTxt = new wxStaticText(this, wxID_ANY, "Protected Content (Click to unlock with PIN / Passphrase)");
     hiddenTxt->SetForegroundColour(th.textMuted);
+=======
+    // 3. Hidden Content placeholder (User requirement: listed items by default have contents hidden)
+    wxStaticText* hiddenTxt = new wxStaticText(this, wxID_ANY, "Protected Content (Click to unlock with PIN)");
+    hiddenTxt->SetForegroundColour(wxColour(148, 163, 184));
+>>>>>>> origin
     wxFont hf = hiddenTxt->GetFont();
     hf.SetPointSize(bodyPt);
     hiddenTxt->SetFont(hf);
@@ -198,6 +277,10 @@ void ItemCardPanel::SetupUI() {
     // Right Action Buttons
     wxBoxSizer* actionsSizer = new wxBoxSizer(wxHORIZONTAL);
 
+<<<<<<< HEAD
+=======
+    // Reorder buttons (Move Up / Move Down)
+>>>>>>> origin
     int btnH = std::max(22, static_cast<int>(24 * m_zoom));
     int upW = std::max(36, static_cast<int>(40 * m_zoom));
     int downW = std::max(44, static_cast<int>(48 * m_zoom));
@@ -227,7 +310,12 @@ void ItemCardPanel::SetupUI() {
     int unlockW = std::max(95, static_cast<int>(110 * m_zoom));
     int unlockH = std::max(28, static_cast<int>(32 * m_zoom));
     wxButton* unlockBtn = new wxButton(this, wxID_ANY, "Unlock & View", wxDefaultPosition, wxSize(unlockW, unlockH));
+<<<<<<< HEAD
     unlockBtn->SetForegroundColour(th.accent);
+=======
+    unlockBtn->SetBackgroundColour(wxColour(238, 242, 255));
+    unlockBtn->SetForegroundColour(wxColour(67, 56, 202));
+>>>>>>> origin
     unlockBtn->Bind(wxEVT_BUTTON, [this, itemId](wxCommandEvent&) {
         if (m_onUnlockClicked) m_onUnlockClicked(itemId);
     });
@@ -236,7 +324,11 @@ void ItemCardPanel::SetupUI() {
     // Remove / Delete button
     int rmW = std::max(65, static_cast<int>(75 * m_zoom));
     wxButton* removeBtn = new wxButton(this, wxID_ANY, "Remove", wxDefaultPosition, wxSize(rmW, unlockH));
+<<<<<<< HEAD
     removeBtn->SetForegroundColour(th.danger);
+=======
+    removeBtn->SetForegroundColour(wxColour(220, 38, 38));
+>>>>>>> origin
     removeBtn->Bind(wxEVT_BUTTON, [this, itemId](wxCommandEvent&) {
         if (m_onDeleteClicked) m_onDeleteClicked(itemId);
     });
@@ -270,6 +362,10 @@ void ItemCardPanel::OnMouseMove(wxMouseEvent& evt) {
 }
 
 void ItemCardPanel::OnLeftUp(wxMouseEvent& evt) {
+<<<<<<< HEAD
+=======
+    // If user clicked without dragging, treat as click to unlock!
+>>>>>>> origin
     if (!m_isDragging) {
         wxPoint pos = evt.GetPosition();
         if (abs(pos.x - m_dragStartPos.x) < 6 && abs(pos.y - m_dragStartPos.y) < 6) {
@@ -290,9 +386,15 @@ void ItemCardPanel::StartDrag() {
     dropSource.DoDragDrop(wxDrag_CopyOnly);
 }
 
+<<<<<<< HEAD
 void ItemCardPanel::OnContextMenu(wxContextMenuEvent&) {
     wxMenu menu;
     menu.Append(101, "Unlock & View Details (PIN / Passphrase Required)");
+=======
+void ItemCardPanel::OnContextMenu(wxContextMenuEvent& evt) {
+    wxMenu menu;
+    menu.Append(101, "Unlock & View Details (PIN Required)");
+>>>>>>> origin
     menu.AppendSeparator();
     menu.Append(102, "Move Up");
     menu.Append(103, "Move Down");

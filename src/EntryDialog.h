@@ -36,11 +36,15 @@ private:
     VaultItem m_resultItem;
 
     // Account Type selector
+<<<<<<< HEAD
     wxStaticBoxSizer* m_typeBox;
     wxRadioButton* m_typeBasicRadio;
     wxRadioButton* m_typeSecQuestionsRadio;
     wxRadioButton* m_typeMiscRadio;
     AccountType GetSelectedAccountType() const;
+=======
+    wxRadioBox* m_typeRadio;
+>>>>>>> origin
 
     // General fields
     wxTextCtrl* m_labelCtrl;
@@ -95,7 +99,11 @@ private:
     void RemoveCustomFieldRow(wxPanel* panel);
 
     // Event Handlers
+<<<<<<< HEAD
     void OnTypeRadioChanged(wxCommandEvent& evt);
+=======
+    void OnTypeChanged(wxCommandEvent& evt);
+>>>>>>> origin
     void OnAddQuestionClicked(wxCommandEvent& evt);
     void OnAddCustomFieldClicked(wxCommandEvent& evt);
     void OnGeneratePasswordClicked(wxCommandEvent& evt);

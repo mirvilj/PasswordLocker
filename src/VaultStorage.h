@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+<<<<<<< HEAD
 #include <cstdint>
 
 struct VaultSettings {
@@ -22,6 +23,8 @@ struct VaultSnapshot {
     std::vector<std::string> tabs;
     std::string actionName;
 };
+=======
+>>>>>>> origin
 
 class VaultStorage {
 public:
@@ -35,11 +38,14 @@ public:
     bool VerifyPin(const std::string& pin);
     bool ChangePin(const std::string& currentPin, const std::string& newPin);
 
+<<<<<<< HEAD
     // Settings
     const VaultSettings& GetSettings() const { return m_settings; }
     void UpdateSettings(const VaultSettings& s) { m_settings = s; }
     void RecordPinChanged();
 
+=======
+>>>>>>> origin
     // Item Operations
     void AddItem(VaultItem item);
     bool UpdateItem(const VaultItem& item);
@@ -49,9 +55,12 @@ public:
 
     // Sorting & Reordering (Drag-and-Drop)
     void SortByTimestamp(bool newestFirst = true);
+<<<<<<< HEAD
     void SortAlphabetical(bool aToZ = true);
     void SortByType();
     void SortByTags(bool sortItemsAlphabetical = false);
+=======
+>>>>>>> origin
     void MoveItem(size_t fromIndex, size_t toIndex);
     void ReorderTabItems(const std::string& tabName, const std::vector<std::string>& itemIdsInOrder);
 
@@ -64,6 +73,7 @@ public:
     // Filtering items
     std::vector<VaultItem*> GetFilteredItems(const std::string& tabName, const std::string& searchFilter = "");
 
+<<<<<<< HEAD
     // Undo / Redo
     void PushUndoState(const std::string& actionName);
     bool CanUndo() const;
@@ -78,6 +88,8 @@ public:
     bool RestoreBackup(const std::string& backupFilePath, const std::string& encryptionKey, std::string& outError, int& outRestoredItemsCount, int& outRestoredTabsCount);
     bool CheckAndPerformAutoBackup(const std::string& currentPin);
 
+=======
+>>>>>>> origin
     // Path helper
     std::string GetFilePath() const { return m_filePath; }
 
@@ -85,6 +97,7 @@ private:
     std::string m_filePath;
     std::vector<VaultItem> m_items;
     std::vector<std::string> m_tabs;
+<<<<<<< HEAD
     VaultSettings m_settings;
     std::vector<uint8_t> m_salt;
     std::string m_pinHash;
@@ -96,6 +109,13 @@ private:
     void EnsureDefaultTabs();
     void InitializeNewVault(const std::string& initialPin);
     bool SaveToFile(const std::string& path, const std::string& pin);
+=======
+    std::vector<uint8_t> m_salt;
+    std::string m_pinHash;
+
+    void EnsureDefaultTabs();
+    void InitializeNewVault(const std::string& initialPin);
+>>>>>>> origin
 };
 
 #endif // VAULT_STORAGE_H

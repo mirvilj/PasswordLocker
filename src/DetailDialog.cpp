@@ -2,9 +2,14 @@
 #include "ImageViewerDialog.h"
 #include "TotpEngine.h"
 #include "VaultCrypto.h"
+<<<<<<< HEAD
 #include "ThemeManager.h"
 #include "ClipboardSanitizer.h"
 #include <wx/mstream.h>
+=======
+#include <wx/mstream.h>
+#include <wx/clipbrd.h>
+>>>>>>> origin
 
 const int TIMER_ID_TOTP = 2001;
 
@@ -13,7 +18,11 @@ wxBEGIN_EVENT_TABLE(DetailDialog, wxDialog)
 wxEND_EVENT_TABLE()
 
 DetailDialog::DetailDialog(wxWindow* parent, const VaultItem& item)
+<<<<<<< HEAD
     : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxSize(660, 700), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+=======
+    : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxSize(640, 700), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+>>>>>>> origin
       m_item(item),
       m_action(DetailAction_Close),
       m_itemModified(false),
@@ -29,7 +38,11 @@ DetailDialog::DetailDialog(wxWindow* parent, const VaultItem& item)
       m_copiedResetCountdown(0) {
 
     SetTitle("Password Locker - " + wxString::FromUTF8(item.label.c_str()));
+<<<<<<< HEAD
     SetBackgroundColour(ThemeManager::Colors.windowBg);
+=======
+    SetBackgroundColour(wxColour(248, 250, 252));
+>>>>>>> origin
 
     SetupUI();
 
@@ -46,25 +59,41 @@ DetailDialog::~DetailDialog() {
 }
 
 void DetailDialog::SetupUI() {
+<<<<<<< HEAD
     const auto& th = ThemeManager::Colors;
+=======
+>>>>>>> origin
     wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
 
     // Header Panel
     wxPanel* headerPanel = new wxPanel(this, wxID_ANY);
+<<<<<<< HEAD
     headerPanel->SetBackgroundColour(th.headerBg);
+=======
+    headerPanel->SetBackgroundColour(wxColour(15, 23, 42)); // Slate 900
+>>>>>>> origin
     wxBoxSizer* headerSizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer* topHeaderRow = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* titleLbl = new wxStaticText(headerPanel, wxID_ANY, wxString::FromUTF8(m_item.label.c_str()));
+<<<<<<< HEAD
     titleLbl->SetForegroundColour(th.headerText);
+=======
+    titleLbl->SetForegroundColour(*wxWHITE);
+>>>>>>> origin
     wxFont tf = titleLbl->GetFont();
     tf.SetPointSize(14);
     tf.SetWeight(wxFONTWEIGHT_BOLD);
     titleLbl->SetFont(tf);
 
     wxString typeBadgeStr = wxString::FromUTF8(AccountTypeToString(m_item.type).c_str());
+<<<<<<< HEAD
     wxStaticText* badge = new wxStaticText(headerPanel, wxID_ANY, " " + typeBadgeStr + " ");
     badge->SetForegroundColour(th.accent);
+=======
+    wxStaticText* badge = new wxStaticText(headerPanel, wxID_ANY, "  " + typeBadgeStr + "  ");
+    badge->SetForegroundColour(wxColour(56, 189, 248)); // Sky 400
+>>>>>>> origin
     wxFont bf = badge->GetFont();
     bf.SetWeight(wxFONTWEIGHT_BOLD);
     badge->SetFont(bf);
@@ -73,6 +102,7 @@ void DetailDialog::SetupUI() {
     topHeaderRow->Add(badge, 0, wxALIGN_CENTER_VERTICAL);
     headerSizer->Add(topHeaderRow, 0, wxEXPAND | wxALL, 12);
 
+<<<<<<< HEAD
     // Bold Submission Timestamp Line
     wxBoxSizer* timeRow = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* timePrompt = new wxStaticText(headerPanel, wxID_ANY, "Submitted: ");
@@ -83,13 +113,29 @@ void DetailDialog::SetupUI() {
     wxFont timeFont = boldTimeTxt->GetFont();
     timeFont.SetPointSize(10);
     timeFont.SetWeight(wxFONTWEIGHT_BOLD);
+=======
+    // Bold Submission Timestamp Line (User requirement: shows this time to user in bold)
+    wxBoxSizer* timeRow = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* timePrompt = new wxStaticText(headerPanel, wxID_ANY, "Submitted: ");
+    timePrompt->SetForegroundColour(wxColour(148, 163, 184));
+
+    wxStaticText* boldTimeTxt = new wxStaticText(headerPanel, wxID_ANY, wxString::FromUTF8(m_item.submittedTimeFormatted.c_str()));
+    boldTimeTxt->SetForegroundColour(wxColour(251, 191, 36)); // Amber 400
+    wxFont timeFont = boldTimeTxt->GetFont();
+    timeFont.SetPointSize(10);
+    timeFont.SetWeight(wxFONTWEIGHT_BOLD); // Bold timestamp!
+>>>>>>> origin
     boldTimeTxt->SetFont(timeFont);
 
     timeRow->Add(timePrompt, 0, wxALIGN_CENTER_VERTICAL);
     timeRow->Add(boldTimeTxt, 0, wxALIGN_CENTER_VERTICAL);
 
     wxStaticText* tabTag = new wxStaticText(headerPanel, wxID_ANY, "   Section: " + wxString::FromUTF8(m_item.tabName.c_str()));
+<<<<<<< HEAD
     tabTag->SetForegroundColour(th.textSecondary);
+=======
+    tabTag->SetForegroundColour(wxColour(203, 213, 225));
+>>>>>>> origin
     timeRow->Add(tabTag, 0, wxALIGN_CENTER_VERTICAL);
 
     headerSizer->Add(timeRow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -104,14 +150,22 @@ void DetailDialog::SetupUI() {
     // 2FA Authenticator Live Card (if configured)
     if (!m_item.totpSecret.empty()) {
         wxPanel* totpCard = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         totpCard->SetBackgroundColour(th.cardBg);
+=======
+        totpCard->SetBackgroundColour(wxColour(238, 242, 255)); // Light indigo
+>>>>>>> origin
         wxBoxSizer* cardSizer = new wxBoxSizer(wxVERTICAL);
 
         wxStaticText* totpTitle = new wxStaticText(totpCard, wxID_ANY, "Two-Factor Authenticator (2FA)");
         wxFont ttf = totpTitle->GetFont();
         ttf.SetWeight(wxFONTWEIGHT_BOLD);
         totpTitle->SetFont(ttf);
+<<<<<<< HEAD
         totpTitle->SetForegroundColour(th.accent);
+=======
+        totpTitle->SetForegroundColour(wxColour(67, 56, 202));
+>>>>>>> origin
         cardSizer->Add(totpTitle, 0, wxALL, 8);
 
         wxBoxSizer* codeRow = new wxBoxSizer(wxHORIZONTAL);
@@ -120,7 +174,11 @@ void DetailDialog::SetupUI() {
         codeFont.SetPointSize(20);
         codeFont.SetWeight(wxFONTWEIGHT_BOLD);
         m_totpCodeLabel->SetFont(codeFont);
+<<<<<<< HEAD
         m_totpCodeLabel->SetForegroundColour(th.textPrimary);
+=======
+        m_totpCodeLabel->SetForegroundColour(wxColour(30, 27, 75));
+>>>>>>> origin
 
         m_copyTotpBtn = new wxButton(totpCard, wxID_ANY, "Copy 2FA Code", wxDefaultPosition, wxSize(130, 34));
         m_copyTotpBtn->Bind(wxEVT_BUTTON, &DetailDialog::OnCopyTotp, this);
@@ -135,7 +193,11 @@ void DetailDialog::SetupUI() {
         m_totpProgressGauge->SetValue(30);
 
         m_totpCountdownLabel = new wxStaticText(totpCard, wxID_ANY, "30s remaining");
+<<<<<<< HEAD
         m_totpCountdownLabel->SetForegroundColour(th.accent);
+=======
+        m_totpCountdownLabel->SetForegroundColour(wxColour(79, 70, 229));
+>>>>>>> origin
 
         progressRow->Add(m_totpProgressGauge, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 8);
         progressRow->Add(m_totpCountdownLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
@@ -148,14 +210,22 @@ void DetailDialog::SetupUI() {
     // Credentials Card
     if (m_item.type == AccountType::Basic || m_item.type == AccountType::SecurityQuestions) {
         wxPanel* credPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         credPanel->SetBackgroundColour(th.cardBg);
+=======
+        credPanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         wxBoxSizer* credSizer = new wxBoxSizer(wxVERTICAL);
 
         // Username
         if (!m_item.username.empty()) {
             wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
             wxStaticText* lbl = new wxStaticText(credPanel, wxID_ANY, "Username:", wxDefaultPosition, wxSize(90, -1));
+<<<<<<< HEAD
             lbl->SetForegroundColour(th.textMuted);
+=======
+            lbl->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
             wxTextCtrl* val = new wxTextCtrl(credPanel, wxID_ANY, wxString::FromUTF8(m_item.username.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
             wxButton* copyBtn = new wxButton(credPanel, wxID_ANY, "Copy", wxDefaultPosition, wxSize(60, 26));
             copyBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -172,7 +242,11 @@ void DetailDialog::SetupUI() {
         if (!m_item.email.empty()) {
             wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
             wxStaticText* lbl = new wxStaticText(credPanel, wxID_ANY, "Email:", wxDefaultPosition, wxSize(90, -1));
+<<<<<<< HEAD
             lbl->SetForegroundColour(th.textMuted);
+=======
+            lbl->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
             wxTextCtrl* val = new wxTextCtrl(credPanel, wxID_ANY, wxString::FromUTF8(m_item.email.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
             wxButton* copyBtn = new wxButton(credPanel, wxID_ANY, "Copy", wxDefaultPosition, wxSize(60, 26));
             copyBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -189,7 +263,11 @@ void DetailDialog::SetupUI() {
         if (!m_item.password.empty()) {
             wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
             wxStaticText* lbl = new wxStaticText(credPanel, wxID_ANY, "Password:", wxDefaultPosition, wxSize(90, -1));
+<<<<<<< HEAD
             lbl->SetForegroundColour(th.textMuted);
+=======
+            lbl->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
 
             m_passwordCtrl = new wxTextCtrl(credPanel, wxID_ANY, wxString::FromUTF8(m_item.password.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_PASSWORD);
             m_showHidePassBtn = new wxButton(credPanel, wxID_ANY, "Show", wxDefaultPosition, wxSize(60, 26));
@@ -211,7 +289,11 @@ void DetailDialog::SetupUI() {
         if (!m_item.website.empty()) {
             wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
             wxStaticText* lbl = new wxStaticText(credPanel, wxID_ANY, "Website:", wxDefaultPosition, wxSize(90, -1));
+<<<<<<< HEAD
             lbl->SetForegroundColour(th.textMuted);
+=======
+            lbl->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
             wxTextCtrl* val = new wxTextCtrl(credPanel, wxID_ANY, wxString::FromUTF8(m_item.website.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
             wxButton* copyBtn = new wxButton(credPanel, wxID_ANY, "Copy", wxDefaultPosition, wxSize(60, 26));
             copyBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -231,14 +313,21 @@ void DetailDialog::SetupUI() {
     // Security Questions Section
     if (!m_item.securityQuestions.empty()) {
         wxPanel* sqPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         sqPanel->SetBackgroundColour(th.cardBg);
+=======
+        sqPanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         wxBoxSizer* sqSizer = new wxBoxSizer(wxVERTICAL);
 
         wxStaticText* sqTitle = new wxStaticText(sqPanel, wxID_ANY, "Security Questions & Answers");
         wxFont sf = sqTitle->GetFont();
         sf.SetWeight(wxFONTWEIGHT_BOLD);
         sqTitle->SetFont(sf);
+<<<<<<< HEAD
         sqTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
         sqSizer->Add(sqTitle, 0, wxALL, 8);
 
         for (size_t i = 0; i < m_item.securityQuestions.size(); ++i) {
@@ -249,7 +338,10 @@ void DetailDialog::SetupUI() {
             wxFont qf = qLbl->GetFont();
             qf.SetWeight(wxFONTWEIGHT_BOLD);
             qLbl->SetFont(qf);
+<<<<<<< HEAD
             qLbl->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
 
             wxBoxSizer* ansRow = new wxBoxSizer(wxHORIZONTAL);
             wxTextCtrl* aCtrl = new wxTextCtrl(sqPanel, wxID_ANY, wxString::FromUTF8(sq.answer.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
@@ -273,14 +365,21 @@ void DetailDialog::SetupUI() {
     // Miscellaneous Custom Fields Section
     if (!m_item.customFields.empty()) {
         wxPanel* cfPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         cfPanel->SetBackgroundColour(th.cardBg);
+=======
+        cfPanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         wxBoxSizer* cfSizer = new wxBoxSizer(wxVERTICAL);
 
         wxStaticText* cfTitle = new wxStaticText(cfPanel, wxID_ANY, "User-Defined Custom Fields");
         wxFont cfF = cfTitle->GetFont();
         cfF.SetWeight(wxFONTWEIGHT_BOLD);
         cfTitle->SetFont(cfF);
+<<<<<<< HEAD
         cfTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
         cfSizer->Add(cfTitle, 0, wxALL, 8);
 
         for (const auto& cf : m_item.customFields) {
@@ -289,7 +388,10 @@ void DetailDialog::SetupUI() {
             wxFont lf = lbl->GetFont();
             lf.SetWeight(wxFONTWEIGHT_BOLD);
             lbl->SetFont(lf);
+<<<<<<< HEAD
             lbl->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
 
             wxTextCtrl* val = new wxTextCtrl(cfPanel, wxID_ANY, wxString::FromUTF8(cf.value.c_str()), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
             wxButton* copyBtn = new wxButton(cfPanel, wxID_ANY, "Copy", wxDefaultPosition, wxSize(60, 26));
@@ -310,14 +412,21 @@ void DetailDialog::SetupUI() {
     // Notes Section
     if (!m_item.notes.empty()) {
         wxPanel* notesPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         notesPanel->SetBackgroundColour(th.cardBg);
+=======
+        notesPanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         wxBoxSizer* notesSizer = new wxBoxSizer(wxVERTICAL);
 
         wxStaticText* nTitle = new wxStaticText(notesPanel, wxID_ANY, "Notes / Documentation");
         wxFont nf = nTitle->GetFont();
         nf.SetWeight(wxFONTWEIGHT_BOLD);
         nTitle->SetFont(nf);
+<<<<<<< HEAD
         nTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
         notesSizer->Add(nTitle, 0, wxALL, 8);
 
         wxTextCtrl* nText = new wxTextCtrl(notesPanel, wxID_ANY, wxString::FromUTF8(m_item.notes.c_str()), wxDefaultPosition, wxSize(-1, 80), wxTE_MULTILINE | wxTE_READONLY);
@@ -330,14 +439,21 @@ void DetailDialog::SetupUI() {
     // Attached Image / Document Section
     if (!m_item.attachedImageBase64.empty()) {
         m_imageCardPanel = new wxPanel(bodyScroll, wxID_ANY);
+<<<<<<< HEAD
         m_imageCardPanel->SetBackgroundColour(th.cardBg);
+=======
+        m_imageCardPanel->SetBackgroundColour(*wxWHITE);
+>>>>>>> origin
         wxBoxSizer* imgCardSizer = new wxBoxSizer(wxVERTICAL);
 
         wxStaticText* docTitle = new wxStaticText(m_imageCardPanel, wxID_ANY, "Attached Image / Document");
         wxFont df = docTitle->GetFont();
         df.SetWeight(wxFONTWEIGHT_BOLD);
         docTitle->SetFont(df);
+<<<<<<< HEAD
         docTitle->SetForegroundColour(th.textPrimary);
+=======
+>>>>>>> origin
         imgCardSizer->Add(docTitle, 0, wxALL, 8);
 
         wxBoxSizer* imgRow = new wxBoxSizer(wxHORIZONTAL);
@@ -356,7 +472,10 @@ void DetailDialog::SetupUI() {
         wxStaticBitmap* thumbCtrl = new wxStaticBitmap(m_imageCardPanel, wxID_ANY, thumbBmp, wxDefaultPosition, wxSize(120, 80));
         thumbCtrl->SetCursor(wxCURSOR_HAND);
         thumbCtrl->SetToolTip("Click to view Full Screen (fits to page, Esc to exit)");
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin
         thumbCtrl->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             wxCommandEvent dummy;
             OnViewImageFullscreen(dummy);
@@ -368,10 +487,16 @@ void DetailDialog::SetupUI() {
         wxFont nf2 = nameTxt->GetFont();
         nf2.SetWeight(wxFONTWEIGHT_BOLD);
         nameTxt->SetFont(nf2);
+<<<<<<< HEAD
         nameTxt->SetForegroundColour(th.textPrimary);
 
         wxStaticText* hintTxt = new wxStaticText(m_imageCardPanel, wxID_ANY, "Click preview to view Full Screen.\nAuto-fits to screen. Press Esc to exit.");
         hintTxt->SetForegroundColour(th.textMuted);
+=======
+
+        wxStaticText* hintTxt = new wxStaticText(m_imageCardPanel, wxID_ANY, "Click preview to view Full Screen.\nAuto-fits to screen. Press Esc to exit.");
+        hintTxt->SetForegroundColour(wxColour(100, 116, 139));
+>>>>>>> origin
 
         wxButton* viewFullBtn = new wxButton(m_imageCardPanel, wxID_ANY, "View Full Screen", wxDefaultPosition, wxSize(140, 30));
         viewFullBtn->Bind(wxEVT_BUTTON, &DetailDialog::OnViewImageFullscreen, this);
@@ -393,11 +518,19 @@ void DetailDialog::SetupUI() {
 
     // Bottom Action Buttons (Edit, Delete, Close)
     wxPanel* bottomPanel = new wxPanel(this, wxID_ANY);
+<<<<<<< HEAD
     bottomPanel->SetBackgroundColour(th.headerBg);
     wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxButton* deleteBtn = new wxButton(bottomPanel, wxID_ANY, "Delete Account", wxDefaultPosition, wxSize(120, 32));
     deleteBtn->SetForegroundColour(th.danger);
+=======
+    bottomPanel->SetBackgroundColour(wxColour(241, 245, 249));
+    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxButton* deleteBtn = new wxButton(bottomPanel, wxID_ANY, "Delete Account", wxDefaultPosition, wxSize(120, 32));
+    deleteBtn->SetForegroundColour(wxColour(220, 38, 38)); // Red
+>>>>>>> origin
     deleteBtn->Bind(wxEVT_BUTTON, &DetailDialog::OnDelete, this);
 
     wxButton* editBtn = new wxButton(bottomPanel, wxID_ANY, "Edit Details", wxDefaultPosition, wxSize(110, 32));
@@ -416,11 +549,18 @@ void DetailDialog::SetupUI() {
     rootSizer->Add(bottomPanel, 0, wxEXPAND);
 
     SetSizer(rootSizer);
+<<<<<<< HEAD
     ThemeManager::ApplyThemeToWindow(this);
     CenterOnParent();
 }
 
 void DetailDialog::OnViewImageFullscreen(wxCommandEvent&) {
+=======
+    CenterOnParent();
+}
+
+void DetailDialog::OnViewImageFullscreen(wxCommandEvent& evt) {
+>>>>>>> origin
     if (m_item.attachedImageBase64.empty()) return;
 
     std::vector<uint8_t> raw = VaultCrypto::Base64Decode(m_item.attachedImageBase64);
@@ -460,6 +600,7 @@ void DetailDialog::UpdateTotpDisplay() {
     }
     if (m_totpCountdownLabel) {
         m_totpCountdownLabel->SetLabel(wxString::Format("%ds remaining", remaining));
+<<<<<<< HEAD
         const auto& th = ThemeManager::Colors;
         if (remaining <= 5) {
             m_totpCountdownLabel->SetForegroundColour(th.danger);
@@ -467,11 +608,23 @@ void DetailDialog::UpdateTotpDisplay() {
             m_totpCountdownLabel->SetForegroundColour(th.warning);
         } else {
             m_totpCountdownLabel->SetForegroundColour(th.accent);
+=======
+        if (remaining <= 5) {
+            m_totpCountdownLabel->SetForegroundColour(wxColour(220, 38, 38)); // Red warning
+        } else if (remaining <= 15) {
+            m_totpCountdownLabel->SetForegroundColour(wxColour(217, 119, 6)); // Amber warning
+        } else {
+            m_totpCountdownLabel->SetForegroundColour(wxColour(79, 70, 229));
+>>>>>>> origin
         }
     }
 }
 
+<<<<<<< HEAD
 void DetailDialog::OnTimer(wxTimerEvent&) {
+=======
+void DetailDialog::OnTimer(wxTimerEvent& evt) {
+>>>>>>> origin
     UpdateTotpDisplay();
     if (m_copiedResetCountdown > 0) {
         m_copiedResetCountdown--;
@@ -481,17 +634,30 @@ void DetailDialog::OnTimer(wxTimerEvent&) {
     }
 }
 
+<<<<<<< HEAD
 void DetailDialog::OnCopyTotp(wxCommandEvent&) {
     if (m_item.totpSecret.empty()) return;
     std::string code = TotpEngine::GenerateCode(m_item.totpSecret);
     CopyToClipboard(wxString::FromUTF8(code.c_str()), "2FA Code");
     if (m_copyTotpBtn) {
         m_copyTotpBtn->SetLabel("Copied! (2m timer)");
+=======
+void DetailDialog::OnCopyTotp(wxCommandEvent& evt) {
+    if (m_item.totpSecret.empty()) return;
+    std::string code = TotpEngine::GenerateCode(m_item.totpSecret);
+    CopyToClipboard(code, "2FA Code");
+    if (m_copyTotpBtn) {
+        m_copyTotpBtn->SetLabel("Copied!");
+>>>>>>> origin
         m_copiedResetCountdown = 2; // Reset after 2 seconds
     }
 }
 
+<<<<<<< HEAD
 void DetailDialog::OnTogglePassword(wxCommandEvent&) {
+=======
+void DetailDialog::OnTogglePassword(wxCommandEvent& evt) {
+>>>>>>> origin
     if (!m_passwordCtrl) return;
     m_passwordVisible = !m_passwordVisible;
 
@@ -520,17 +686,32 @@ void DetailDialog::OnTogglePassword(wxCommandEvent&) {
     parent->Layout();
 }
 
+<<<<<<< HEAD
 void DetailDialog::CopyToClipboard(const wxString& text, const wxString&) {
     // Copies and schedules automatic sanitization / clear after 2 minutes
     ClipboardSanitizer::CopyAndScheduleClear(text, 120);
 }
 
 void DetailDialog::OnEdit(wxCommandEvent&) {
+=======
+void DetailDialog::CopyToClipboard(const wxString& text, const wxString& labelName) {
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(text));
+        wxTheClipboard->Close();
+    }
+}
+
+void DetailDialog::OnEdit(wxCommandEvent& evt) {
+>>>>>>> origin
     m_action = DetailAction_Edit;
     EndModal(wxID_OK);
 }
 
+<<<<<<< HEAD
 void DetailDialog::OnDelete(wxCommandEvent&) {
+=======
+void DetailDialog::OnDelete(wxCommandEvent& evt) {
+>>>>>>> origin
     int res = wxMessageBox(
         "Are you sure you want to permanently delete '" + wxString::FromUTF8(m_item.label.c_str()) + "'?",
         "Confirm Delete",
@@ -543,7 +724,11 @@ void DetailDialog::OnDelete(wxCommandEvent&) {
     }
 }
 
+<<<<<<< HEAD
 void DetailDialog::OnCloseBtn(wxCommandEvent&) {
+=======
+void DetailDialog::OnCloseBtn(wxCommandEvent& evt) {
+>>>>>>> origin
     m_action = DetailAction_Close;
     EndModal(wxID_CANCEL);
 }

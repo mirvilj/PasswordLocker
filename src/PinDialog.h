@@ -12,6 +12,7 @@ enum class PinDialogMode {
 
 class PinDialog : public wxDialog {
 public:
+<<<<<<< HEAD
     PinDialog(wxWindow* parent,
               PinDialogMode mode = PinDialogMode::UnlockItem,
               const std::string& itemLabel = "",
@@ -28,11 +29,21 @@ private:
     wxRadioButton* m_pinRadio;
     wxRadioButton* m_passRadio;
 
+=======
+    PinDialog(wxWindow* parent, PinDialogMode mode = PinDialogMode::UnlockItem, const std::string& itemLabel = "");
+
+    std::string GetEnteredPin() const;
+    std::string GetNewPin() const;
+
+private:
+    PinDialogMode m_mode;
+>>>>>>> origin
     wxTextCtrl* m_currentPinCtrl;
     wxTextCtrl* m_newPinCtrl;
     wxTextCtrl* m_confirmPinCtrl;
     wxStaticText* m_errorText;
 
+<<<<<<< HEAD
     wxButton* m_toggleShowCurrentBtn;
     wxButton* m_toggleShowNewBtn;
     bool m_showingCurrent;
@@ -42,6 +53,8 @@ private:
     void OnModeRadioChanged(wxCommandEvent& evt);
     void OnToggleShowCurrent(wxCommandEvent& evt);
     void OnToggleShowNew(wxCommandEvent& evt);
+=======
+>>>>>>> origin
     void OnOk(wxCommandEvent& evt);
     void OnCancel(wxCommandEvent& evt);
 

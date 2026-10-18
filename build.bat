@@ -28,6 +28,7 @@ set "DATA_DIR=%BASE_DIR%data"
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 
+<<<<<<< HEAD
 echo Compiling Windows resources...
 rc /nologo /fo"%BIN_DIR%\app.res" /i"%SRC_DIR%" /i"%WX_DIR%\include" "%SRC_DIR%\app.rc"
 if %ERRORLEVEL% neq 0 (
@@ -35,6 +36,8 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
+=======
+>>>>>>> origin
 echo Compiling C++ source files...
 cl /nologo /EHsc /MD /std:c++17 /O2 /utf-8 ^
    /DWXUSINGDLL /D__WXMSW__ /D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS ^
@@ -46,6 +49,7 @@ cl /nologo /EHsc /MD /std:c++17 /O2 /utf-8 ^
    "%SRC_DIR%\VaultCrypto.cpp" ^
    "%SRC_DIR%\VaultItem.cpp" ^
    "%SRC_DIR%\VaultStorage.cpp" ^
+<<<<<<< HEAD
    "%SRC_DIR%\ThemeManager.cpp" ^
    "%SRC_DIR%\ClipboardSanitizer.cpp" ^
    "%SRC_DIR%\PinDialog.cpp" ^
@@ -53,6 +57,9 @@ cl /nologo /EHsc /MD /std:c++17 /O2 /utf-8 ^
    "%SRC_DIR%\BackupRestoreDialog.cpp" ^
    "%SRC_DIR%\PasswordAnalyzerDialog.cpp" ^
    "%SRC_DIR%\HelpDialog.cpp" ^
+=======
+   "%SRC_DIR%\PinDialog.cpp" ^
+>>>>>>> origin
    "%SRC_DIR%\EntryDialog.cpp" ^
    "%SRC_DIR%\DetailDialog.cpp" ^
    "%SRC_DIR%\ImageViewerDialog.cpp" ^
@@ -60,7 +67,10 @@ cl /nologo /EHsc /MD /std:c++17 /O2 /utf-8 ^
    "%SRC_DIR%\ItemCardPanel.cpp" ^
    "%SRC_DIR%\MainWindow.cpp" ^
    "%SRC_DIR%\main.cpp" ^
+<<<<<<< HEAD
    "%BIN_DIR%\app.res" ^
+=======
+>>>>>>> origin
    /link ^
    /LIBPATH:"%WX_DIR%\lib\vc14x_x64_dll" ^
    wxmsw32u_core.lib wxbase32u.lib wxpng.lib wxjpeg.lib wxzlib.lib bcrypt.lib ^
@@ -79,7 +89,10 @@ echo Copying wxWidgets runtime DLLs to output directory...
 copy /Y "%WX_DIR%\lib\vc14x_x64_dll\wxbase32u_vc14x_x64.dll" "%BIN_DIR%\" >nul
 copy /Y "%WX_DIR%\lib\vc14x_x64_dll\wxmsw32u_core_vc14x_x64.dll" "%BIN_DIR%\" >nul
 copy /Y "%BIN_DIR%\Password_Locker.exe" "%BIN_DIR%\EC_Lab_Vault.exe" >nul
+<<<<<<< HEAD
 if exist "%BASE_DIR%Password_Locker.exe" copy /Y "%BIN_DIR%\Password_Locker.exe" "%BASE_DIR%Password_Locker.exe" >nul
+=======
+>>>>>>> origin
 
 echo.
 echo ===================================================

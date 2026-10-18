@@ -22,6 +22,7 @@ set(SOURCES
     ${SRC_DIR}/VaultItem.cpp
     ${SRC_DIR}/VaultCrypto.cpp
     ${SRC_DIR}/TotpEngine.cpp
+<<<<<<< HEAD
     ${SRC_DIR}/ThemeManager.cpp
     ${SRC_DIR}/ClipboardSanitizer.cpp
     ${SRC_DIR}/SettingsDialog.cpp
@@ -29,6 +30,8 @@ set(SOURCES
     ${SRC_DIR}/PasswordAnalyzerDialog.cpp
     ${SRC_DIR}/HelpDialog.cpp
     ${SRC_DIR}/app.rc
+=======
+>>>>>>> origin
 )
 
 set(HEADERS
@@ -39,12 +42,15 @@ set(HEADERS
     ${SRC_DIR}/ImageViewerDialog.h
     ${SRC_DIR}/PinDialog.h
     ${SRC_DIR}/TotpHubDialog.h
+<<<<<<< HEAD
     ${SRC_DIR}/SettingsDialog.h
     ${SRC_DIR}/BackupRestoreDialog.h
     ${SRC_DIR}/PasswordAnalyzerDialog.h
     ${SRC_DIR}/HelpDialog.h
     ${SRC_DIR}/ThemeManager.h
     ${SRC_DIR}/ClipboardSanitizer.h
+=======
+>>>>>>> origin
     ${SRC_DIR}/VaultStorage.h
     ${SRC_DIR}/VaultItem.h
     ${SRC_DIR}/VaultCrypto.h
