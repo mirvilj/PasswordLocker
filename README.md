@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://github.com/mirvilj/PasswordLocker/blob/main/Password%20Locker.png" alt="Repository Banner" width="100%">
+</p>
 # Password Locker - Offline Password Vault & 2-Factor Authenticator
 
 A modern, polished, cross-platform C++ GUI application built with **wxWidgets** designed to store confidential passwords, documents/image attachments, and generate Time-based One-Time Passwords (TOTP / 2FA) **100% offline** with zero internet dependency.
